@@ -1,0 +1,17 @@
+version = 0.1
+
+[dev.deploy.parameters]
+stack_name          = "cauciones-api-dev"
+region              = "us-east-1"
+confirm_changeset   = true
+capabilities        = "CAPABILITY_IAM"
+resolve_s3          = true
+parameter_overrides = "LogLevel=debug"
+
+[prod.deploy.parameters]
+stack_name          = "cauciones-api-prod"
+region              = "us-east-1"
+confirm_changeset   = true
+capabilities        = "CAPABILITY_IAM"
+resolve_s3          = true
+parameter_overrides = "LogLevel=info"

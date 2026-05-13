@@ -1,0 +1,81 @@
+version: "3"
+
+vars:
+  BINARY: bootstrap
+  MODULE: github.com/FrancoPersonal/golang-api-rest-aws
+  COVERAGE_THRESHOLD: "80"
+
+tasks:
+  default:
+    desc: List all available tasks
+    cmds:
+      - task --list
+
+  lint:
+    desc: Run golangci-lint
+    cmds:
+      - golangci-lint run ./...
+
+  test:
+    desc: Run unit tests with race detector
+    cmds:
+      - go test -race -count=1 ./...
+
+  coverage:
+    desc: Run tests, enforce ≥80% coverage and update README badge
+    cmds:
+      - bash scripts/check_coverage.sh
+
+  build:
+    desc: Cross-compile Lambda binary (linux/amd64 → ./bootstrap)
+    cmds:
+      - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o {{.BINARY}} ./cmd/lambda
+
+  local:api:
+    desc: Start the API locally via SAM (requires Docker)
+    deps: [build]
+    cmds:
+      - sam local start-api
+
+  deploy:guided:
+    desc: Interactive first-time SAM deploy (prompts for config)
+    deps: [build]
+    cmds:
+      - sam build
+      - sam deploy --guided
+
+  deploy:
+    desc: SAM deploy using saved samconfig.toml
+    deps: [build]
+    cmds:
+      - sam build
+      - sam deploy
+
+  deploy:dev:
+    desc: Deploy to dev stack
+    deps: [build]
+    cmds:
+      - sam build
+      - sam deploy --config-env dev
+
+  deploy:prod:
+    desc: Deploy to prod stack
+    deps: [build]
+    cmds:
+      - sam build
+      - sam deploy --config-env prod
+
+  pre-commit:
+    desc: Run all pre-commit checks (lint + coverage)
+    cmds:
+      - task: lint
+      - task: coverage
+
+  tidy:
+    desc: Tidy and verify Go modules
+    cmds:
+      - go env -w GOPRIVATE=github.com/FrancoPersonal/*
+      - go env -w GONOSUMDB=github.com/FrancoPersonal/*
+      - go mod download
+      - go mod tidy
+      - go mod verify

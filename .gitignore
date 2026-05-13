@@ -1,0 +1,28 @@
+# Build output
+bootstrap
+coverage.out
+coverage.html
+
+# SAM build artifacts
+.aws-sam/
+
+# Environment files
+*.env
+.env.*
+!.env.example
+
+# Go test cache
+*.test
+*.out
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db

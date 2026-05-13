@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    name: Lint, Test & Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache: true
+
+      - name: Configure private module access
+        run: git config --global url."https://${{ secrets.GOPRIVATE_TOKEN }}@github.com/".insteadOf "https://github.com/"
+        env:
+          GOPRIVATE: github.com/FrancoPersonal/*
+
+      - name: Download modules
+        run: go mod download
+        env:
+          GOPRIVATE: github.com/FrancoPersonal/*
+          GONOSUMCHECK: github.com/FrancoPersonal/*
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
+      - name: Test with race detector
+        run: go test -race -coverprofile=coverage.out ./...
+        env:
+          GOPRIVATE: github.com/FrancoPersonal/*
+
+      - name: Check coverage threshold (≥80%)
+        run: |
+          TOTAL=$(go tool cover -func=coverage.out | grep "^total:" | awk '{print $3}' | tr -d '%')
+          TOTAL_INT=${TOTAL%.*}
+          echo "Total coverage: ${TOTAL}%"
+          if (( TOTAL_INT < 80 )); then
+            echo "✗ Coverage ${TOTAL}% is below the required 80%"
+            exit 1
+          fi
+          echo "✓ Coverage ${TOTAL}% passes the 80% threshold"
+
+      - name: Determine badge color
+        id: badge
+        run: |
+          TOTAL=$(go tool cover -func=coverage.out | grep "^total:" | awk '{print $3}' | tr -d '%')
+          TOTAL_INT=${TOTAL%.*}
+          if   (( TOTAL_INT >= 80 )); then COLOR="brightgreen"
+          elif (( TOTAL_INT >= 60 )); then COLOR="yellow"
+          else                              COLOR="red"
+          fi
+          echo "percent=${TOTAL_INT}" >> "$GITHUB_OUTPUT"
+          echo "color=${COLOR}"       >> "$GITHUB_OUTPUT"
+
+      - name: Update coverage badge in README
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          BADGE_URL="https://img.shields.io/badge/coverage-${{ steps.badge.outputs.percent }}%25-${{ steps.badge.outputs.color }}"
+          sed -i.bak "s|https://img\.shields\.io/badge/coverage-[^)]*|${BADGE_URL}|g" README.md && rm -f README.md.bak
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet README.md || (git add README.md && git commit -m "chore(ci): update coverage badge [${{ steps.badge.outputs.percent }}%]" && git push)

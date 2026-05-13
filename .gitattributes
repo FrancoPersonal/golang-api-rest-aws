@@ -1,0 +1,18 @@
+# Force LF line endings for all text files (critical for scripts on Windows)
+* text=auto eol=lf
+
+# Go source files
+*.go text eol=lf
+
+# Config / manifest files
+*.yaml  text eol=lf
+*.yml   text eol=lf
+*.toml  text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+*.sh    text eol=lf
+*.mod   text eol=lf
+*.sum   text eol=lf
+
+# Lambda binary — treat as binary so git never rewrites it
+bootstrap binary
