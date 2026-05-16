@@ -1,6 +1,6 @@
 ## Plan: REST API Cauciones en Go — Arquitectura Hexagonal
 
-**TL;DR:** Proyecto Go 1.26 desde cero con arquitectura hexagonal, API REST de Cauciones desplegada en AWS Lambda + HTTP API Gateway v2, persistencia en DynamoDB, logger del repositorio privado `github.com/FrancoPersonal/golang-wappers`, pre-commit con linter + cobertura >80%, deploy con Serverless Framework y task runner con Taskfile.
+**TL;DR:** Proyecto Go 1.26 desde cero con arquitectura hexagonal, API REST de Cauciones desplegada en AWS Lambda + HTTP API Gateway v2, persistencia en DynamoDB y SQL Server mediante repositories, logger del repositorio privado `github.com/FrancoPersonal/golang-wappers`, pre-commit con linter + cobertura >80%, deploy con Serverless Framework y task runner con Taskfile.
 
 ---
 
@@ -13,14 +13,14 @@ golang-api-rest-aws/
 │   │   ├── caucion.go                          # Entidad + value objects + estados
 │   │   ├── errors.go                           # Errores de dominio
 │   │   └── ports/
-│   │       ├── primary/caucion_usecase.go      # Puerto de entrada (interfaz)
-│   │       └── secondary/caucion_repository.go # Puerto de salida (interfaz)
+│   │       ├── usecase/caucion_usecase.go      # Puerto de entrada (interfaz)
+│   │       └── repository/caucion_repository.go # Puerto de salida (interfaz)
 │   ├── application/
 │   │   └── services/
 │   │       ├── caucion_service.go
 │   │       └── caucion_service_test.go
 │   └── adapters/
-│       ├── primary/http/
+│       ├── http/
 │       │   ├── handlers/
 │       │   │   ├── caucion_handler.go
 │       │   │   └── caucion_handler_test.go
@@ -28,15 +28,14 @@ golang-api-rest-aws/
 │       │   │   ├── request.go
 │       │   │   └── response.go
 │       │   └── router.go
-│       └── secondary/dynamodb/
-│           └── repositories/
+│       └── repositories/
+│           ├── dynamodb/
+│           │   ├── caucion_repository.go
+│           │   └── caucion_repository_test.go
+│           └── sqlserver/
 │               ├── caucion_repository.go
 │               └── caucion_repository_test.go
-│   └── infrastructure/
-│       ├── clients/
-│       │   └── dynamodb_client.go
-│       └── lambda/
-│           └── main.go
+|
 ├── pkg/logger/logger.go                        # Wrapper del logger de golang-wappers
 ├── .github/
 │   └── workflows/
@@ -61,34 +60,40 @@ golang-api-rest-aws/
 3. Verificar que existan las capas `domain`, `application`, `adapters`, `infrastructure` y la separacion `handlers`, `services`, `repositories`, `dto`, `clients`.
 
 **Fase 1 — Esqueleto del dominio**
-1. `go.mod` — módulo `github.com/FrancoPersonal/golang-api-rest-aws`, Go 1.26, deps: `aws-lambda-go`, `aws-sdk-go-v2`, `golang-wappers`, `uuid`, `aws-lambda-go-api-proxy`, `testify`
+1. `go.mod` — módulo `github.com/FrancoPersonal/golang-api-rest-aws`, Go 1.26, deps: `aws-lambda-go`, `golang-wappers`, `uuid`, `aws-lambda-go-api-proxy`, `testify`
 2. `pkg/logger/logger.go` — interfaz `Logger` y constructor que envuelve el logger de `github.com/FrancoPersonal/golang-wappers`
 3. `internal/domain/caucion.go` — entidad `Caucion` con campos: ID, Numero, Tipo, Monto, Moneda, FechaEmision, FechaVencimiento, Estado, Beneficiario, Tomador, CreatedAt, UpdatedAt; tipo `Estado` con constantes y método de transición válida
 4. `internal/domain/errors.go` — errores centinela: `ErrNotFound`, `ErrInvalidState`, `ErrInvalidTransition`
-5. Puertos: `CaucionUseCase` (primary) y `CaucionRepository` (secondary)
+5. Puertos: `CaucionUseCase` (entrada) y `CaucionRepository` (salida)
 
 **Fase 2 — Capa de aplicación** *(depende de Fase 1)*
 6. `internal/application/services/caucion_service.go` — implementa los 6 casos de uso: Create, GetByID, List, Update, Delete, ChangeState
 7. `internal/application/services/caucion_service_test.go` — mock de `CaucionRepository` con `testify/mock`, cobertura >80%
 
 **Fase 3 — Adaptadores** *(paralelo, depende de Fase 1)*
-8. `internal/adapters/secondary/dynamodb/repositories/caucion_repository.go` — PutItem, GetItem, Scan/Query, UpdateItem, DeleteItem con manejo de errores tipados
-9. `internal/adapters/secondary/dynamodb/repositories/caucion_repository_test.go` — usa mock client de `aws-sdk-go-v2`
-10. `internal/adapters/primary/http/dto/request.go` + `internal/adapters/primary/http/dto/response.go` — DTOs con validación básica
-11. `internal/adapters/primary/http/handlers/caucion_handler.go` — handlers para POST/GET/GET(list)/PUT/DELETE/PATCH; delega a `CaucionUseCase`
-12. `internal/adapters/primary/http/handlers/caucion_handler_test.go` — httptest, mock del use case
-13. `internal/adapters/primary/http/router.go` — registra rutas en `http.ServeMux`
+8. `internal/adapters/repositories/dynamodb/caucion_repository.go` — PutItem, GetItem, Scan/Query, UpdateItem, DeleteItem con manejo de errores tipados
+9. `internal/adapters/repositories/dynamodb/caucion_repository_test.go` — usa mock client provisto por `github.com/FrancoPersonal/golang-wappers`
+10. `internal/adapters/repositories/sqlserver/caucion_repository.go` — CRUD con SQL parametrizado y manejo de errores tipados
+11. `internal/adapters/repositories/sqlserver/caucion_repository_test.go` — usa mock client de SQL Server
+12. `internal/adapters/http/dto/request.go` + `internal/adapters/http/dto/response.go` — DTOs con validación básica
+13. `internal/adapters/http/handlers/caucion_handler.go` — handlers para POST/GET/GET(list)/PUT/DELETE/PATCH; delega a `CaucionUseCase`
+14. `internal/adapters/http/handlers/caucion_handler_test.go` — httptest, mock del use case
+15. `internal/adapters/http/router.go` — registra rutas en `http.ServeMux`
+
+**Fase 3.1 — Infrastructure clients (wappers)** *(depende de Fase 1)*
+16. `internal/infrastructure/clients/dynamodb_client.go` — consumir e inicializar cliente DynamoDB desde `github.com/FrancoPersonal/golang-wappers`.
+17. `internal/infrastructure/clients/sqlserver_client.go` — consumir e inicializar cliente SQL Server desde `github.com/FrancoPersonal/golang-wappers`.
 
 **Fase 4 — Entry point + Tooling** *(depende de todas las fases)*
-14. `internal/infrastructure/lambda/main.go` — wire manual de dependencias, `httpadapter.NewV2(router)`, `lambda.Start()`
-15. `.golangci.yml` — habilita: `errcheck`, `govet`, `staticcheck`, `gosimple`, `unused`, `gofmt`, `goimports`
-16. `.pre-commit-config.yaml` — hooks: `golangci-lint run`, `conventional-pre-commit` (Conventional Commits), script de coverage ≥80% + generación del badge de coverage en `README.md` (actualiza el porcentaje en el badge de `shields.io` vía sed o script Go embebido)
-17. `Taskfile.yml` — tasks: `lint`, `test`, `coverage`, `build` (cross-compile linux/amd64), `deploy`, `deploy:guided`, `local:api` (serverless offline start), `pre-commit`; la task `coverage` incluye el paso de actualizar el badge en `README.md` y hace `git add README.md` para incluirlo en el commit
-18. `serverless.yml` — Serverless Framework: Lambda, HTTP API v2, DynamoDB, IAM minimo y variables por stage
-20. `.gitignore` — excluir `bootstrap`, `coverage.out`, `.serverless/`, `*.env`
-21. `.gitattributes` — forzar LF en todos los archivos de texto; `bootstrap` como binario
-22. `.github/workflows/ci.yml` — trigger en PR/push a `main`; jobs: setup-go 1.26 → `golangci-lint-action` → test con race detector → verificar cobertura ≥80% → generar badge con `actions/github-script` o subir a `gist` para exponer el porcentaje en el README
-23. `README.md` — badge de coverage dinámico (vía `img.shields.io` apuntando al gist o al artefacto de CI), badge de CI status, instrucciones de setup, `task` commands y endpoint de la API
+18. `internal/infrastructure/lambda/main.go` — wire manual de dependencias, `httpadapter.NewV2(router)`, `lambda.Start()`
+19. `.golangci.yml` — habilita: `errcheck`, `govet`, `staticcheck`, `gosimple`, `unused`, `gofmt`, `goimports`
+20. `.pre-commit-config.yaml` — hooks: `golangci-lint run`, `conventional-pre-commit` (Conventional Commits), script de coverage ≥80% + generación del badge de coverage en `README.md` (actualiza el porcentaje en el badge de `shields.io` vía sed o script Go embebido)
+21. `Taskfile.yml` — tasks: `lint`, `test`, `coverage`, `build` (cross-compile linux/amd64), `deploy`, `deploy:guided`, `local:api` (serverless offline start), `pre-commit`; la task `coverage` incluye el paso de actualizar el badge en `README.md` y hace `git add README.md` para incluirlo en el commit
+22. `serverless.yml` — Serverless Framework: Lambda, HTTP API v2, DynamoDB, IAM minimo y variables por stage
+23. `.gitignore` — excluir `bootstrap`, `coverage.out`, `.serverless/`, `*.env`
+24. `.gitattributes` — forzar LF en todos los archivos de texto; `bootstrap` como binario
+25. `.github/workflows/ci.yml` — trigger en PR/push a `main`; jobs: setup-go 1.26 → `golangci-lint-action` → test con race detector → verificar cobertura ≥80% → generar badge con `actions/github-script` o subir a `gist` para exponer el porcentaje en el README
+26. `README.md` — badge de coverage dinámico (vía `img.shields.io` apuntando al gist o al artefacto de CI), badge de CI status, instrucciones de setup, `task` commands y endpoint de la API
 
 ---
 
@@ -97,11 +102,12 @@ golang-api-rest-aws/
 | Archivo | Rol |
 |---|---|
 | `go.mod` | Módulo raíz |
-| `internal/domain/ports/primary/caucion_usecase.go` | Contrato de entrada para handlers |
-| `internal/domain/ports/secondary/caucion_repository.go` | Contrato de salida para DynamoDB |
+| `internal/domain/ports/usecase/caucion_usecase.go` | Contrato de entrada para handlers |
+| `internal/domain/ports/repository/caucion_repository.go` | Contrato de salida para repositories (DynamoDB/SQL Server) |
 | `internal/application/services/caucion_service.go` | Lógica de negocio pura |
-| `internal/adapters/secondary/dynamodb/repositories/caucion_repository.go` | I/O con DynamoDB |
-| `internal/adapters/primary/http/handlers/caucion_handler.go` | REST → use case |
+| `internal/adapters/repositories/dynamodb/caucion_repository.go` | I/O con DynamoDB |
+| `internal/adapters/repositories/sqlserver/caucion_repository.go` | I/O con SQL Server |
+| `internal/adapters/http/handlers/caucion_handler.go` | REST → use case |
 | `internal/infrastructure/lambda/main.go` | Composición y bootstrap Lambda |
 | `serverless.yml` | Serverless Framework IaC — Lambda, HTTP API GW v2, DynamoDB |
 | `Taskfile.yml` | Task runner — lint, test, build, deploy, local |
@@ -132,6 +138,7 @@ golang-api-rest-aws/
 - **Inyección de dependencias manual** (no Wire) para mantener simplicidad
 - **net/http + `httpadapter/v2`** de `aws-lambda-go-api-proxy` para adaptar `http.Handler` a eventos Lambda HTTP API v2 sin reescribir handlers
 - El logger de `github.com/FrancoPersonal/golang-wappers` se envuelve detrás de una interfaz local `pkg/logger.Logger` — el dominio no depende de paquetes externos
+- Los clientes de DynamoDB y SQL Server se consumen desde `github.com/FrancoPersonal/golang-wappers` a traves de adapters locales en `internal/infrastructure/clients`
 - Tests usan `testify/mock` para mocks de puertos
 - **Serverless Framework** como IaC; `serverless.yml` define todo el stack sin CDK ni Terraform
 - **API Gateway HTTP API v2** (no REST API v1) — menor costo y latencia; soportado por `httpadapter/v2`
@@ -147,3 +154,5 @@ golang-api-rest-aws/
 
 1. **Logger privado:** `github.com/FrancoPersonal/golang-wappers` requiere `GOPRIVATE=github.com/FrancoPersonal/*` configurado en el entorno de desarrollo y en CI (GitHub Actions secret `GITHUB_TOKEN` o PAT)
 2. **Tabla DynamoDB:** nombre configurable vía variable de entorno `CAUCION_TABLE_NAME` inyectada por Serverless Framework
+3. **SQL Server:** cadena de conexión configurable vía variable de entorno `SQLSERVER_DSN` y queries siempre parametrizadas
+4. **Clientes de infraestructura:** DynamoDB y SQL Server deben inicializarse usando `github.com/FrancoPersonal/golang-wappers`.
