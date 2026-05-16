@@ -55,6 +55,11 @@ golang-api-rest-aws/
 
 ### Pasos
 
+**Paso 0 — Generar estructura inicial de archivos**
+1. Crear el arbol base de carpetas y archivos segun la seccion "Estructura de directorios" antes de implementar logica.
+2. La estructura inicial debe generarse sin codigo: solo carpetas y archivos vacios (o placeholders minimos), sin funciones, handlers, servicios ni repositorios implementados.
+3. Verificar que existan las capas `domain`, `application`, `adapters`, `infrastructure` y la separacion `handlers`, `services`, `repositories`, `dto`, `clients`.
+
 **Fase 1 — Esqueleto del dominio**
 1. `go.mod` — módulo `github.com/FrancoPersonal/golang-api-rest-aws`, Go 1.26, deps: `aws-lambda-go`, `aws-sdk-go-v2`, `golang-wappers`, `uuid`, `aws-lambda-go-api-proxy`, `testify`
 2. `pkg/logger/logger.go` — interfaz `Logger` y constructor que envuelve el logger de `github.com/FrancoPersonal/golang-wappers`
