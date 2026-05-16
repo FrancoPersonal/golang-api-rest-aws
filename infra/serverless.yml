@@ -1,0 +1,27 @@
+service: cauciones-infrastructure
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+
+custom:
+  caucionTableName: cauciones-api-${sls:stage}-cauciones
+
+resources:
+  Resources:
+    CaucionesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.caucionTableName}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+  Outputs:
+    CaucionesTableName:
+      Value: ${self:custom.caucionTableName}

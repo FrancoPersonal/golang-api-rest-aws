@@ -1,5 +1,6 @@
 # Build output
 bootstrap
+build/
 coverage.out
 coverage.html
 

@@ -20,9 +20,9 @@ This repository uses Go and AWS Lambda with hexagonal architecture.
 
 - Domain logic belongs in `internal/domain`.
 - Application orchestration belongs in `internal/application`.
-- Primary adapters (HTTP) belong in `internal/adapters/primary/http`.
-- Secondary adapters (DynamoDB) belong in `internal/adapters/secondary/dynamodb`.
-- Lambda bootstrap and wiring belong in `cmd/lambda/main.go`.
+- HTTP adapters belong in `internal/adapters/http`.
+- Repository adapters (DynamoDB/SQL Server) belong in `internal/adapters/repositories`.
+- Lambda bootstrap and wiring belong in `internal/infrastructure/lambda`.
 
 Do not move business rules into adapters.
 
@@ -115,9 +115,15 @@ Si hay persistencia:
 
 Generar:
 - serverless.yml
+- serverless.policies.yml
+- serverless.infrastructure.yml
 - IAM minimo necesario
 - variables por stage
 - empaquetado optimizado
+- los compilados de Lambda deben generarse en la carpeta build/
+- cada Lambda debe generar su propio compilado separado (un artefacto independiente por funcion)
+- las politicas IAM y la infraestructura deben estar separadas en archivos serverless independientes
+- los archivos de politicas e infraestructura deben poder desplegarse de forma independiente
 
 ### Testing
 

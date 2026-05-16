@@ -91,6 +91,31 @@ pendiente ──► vigente ──► vencida
 - [pre-commit](https://pre-commit.com/#install)
 - Docker (optional, for local workflows)
 
+
+
+### Install dependencies
+
+```bash
+# 1. Install Task runner
+go install github.com/go-task/task/v3/cmd/task@latest
+
+# 2. Install pre-commit
+pip install pre-commit          # Linux/macOS
+py -m pip install pre-commit    # Windows
+
+# 3. Install golangci-lint and register the git hooks
+task setup
+
+# Run full pipeline (tidy → build → lint → test + coverage gate ≥ 80%)
+task check
+
+# Individual tasks
+task test        # run tests with race detector
+task lint        # run golangci-lint
+task coverage    # open HTML coverage report
+task docs        # serve godoc on :6060
+```
+
 ### Private module setup
 
 ```bash
@@ -124,6 +149,12 @@ task coverage
 # Build Lambda binary
 task build
 
+# Build output (separated per Lambda)
+# build/post_cauciones/bootstrap
+# build/post_cauciones.zip
+# build/get_cauciones/bootstrap
+# build/get_cauciones.zip
+
 # Start locally (requires Docker)
 task local:api
 # → API available at http://localhost:3000
@@ -137,9 +168,20 @@ task local:api
 # Review and adjust stage variables
 serverless print --stage dev
 
-# Deploy by stage
+# Deploy policies independently
+serverless deploy --config serverless.policies.yml --stage dev
+
+# Deploy infrastructure independently
+serverless deploy --config serverless.infrastructure.yml --stage dev
+
+# Deploy API (consumes outputs from policies + infrastructure stacks)
 serverless deploy --stage dev
 serverless deploy --stage prod
+
+# Equivalent task commands
+task deploy:policies:dev
+task deploy:infrastructure:dev
+task deploy:dev
 ```
 
 ### Environment variables (Lambda)
@@ -147,6 +189,7 @@ serverless deploy --stage prod
 | Variable | Description |
 |----------|-------------|
 | `CAUCION_TABLE_NAME` | DynamoDB table name (injected by Serverless Framework) |
+| `JWT_SECRET` | JWT signing secret used by authorization middleware |
 | `LOG_LEVEL` | Log verbosity: `debug`, `info`, `warn`, `error` (default: `info`) |
 
 ### Seguridad
@@ -158,18 +201,40 @@ serverless deploy --stage prod
 
 ---
 
-## Estructura propuesta del proyecto
+## Estructura actual del proyecto
 
 ```
 .
 ├── internal/
-│   ├── domain/                                 # Entidades y puertos
-│   ├── application/                            # Servicios / casos de uso
+│   ├── domain/                                 # Entidades, errores y puertos
+│   │   └── ports/
+│   │       ├── usecase/
+│   │       └── repository/
+│   ├── application/                            # Servicios de aplicacion
+│   │   └── services/
 │   ├── adapters/
-│   │   ├── primary/http/                       # Handlers + DTOs de entrada/salida
-│   │   └── secondary/dynamodb/                 # Repositories
-│   └── infrastructure/                         # Wiring, clients externos, config
-├── serverless.yml                              # Infraestructura serverless
+│   │   ├── http/                               # Router, handlers, DTOs y middleware
+│   │   └── repositories/
+│   │       ├── dynamodb/
+│   │       └── sqlserver/
+│   └── infrastructure/
+│       ├── clients/
+│       └── lambda/
+│           ├── post_cauciones/main.go          # Lambda POST /cauciones
+│           └── get_cauciones/main.go           # Lambda GET /cauciones
+├── pkg/logger/                                 # Wrapper de logger
+├── scripts/                                    # Scripts de coverage, badge y packaging
+│   └── package_lambda.go
+├── build/                                      # Compilados separados por Lambda
+│   ├── post_cauciones/bootstrap
+│   ├── post_cauciones.zip
+│   ├── get_cauciones/bootstrap
+│   └── get_cauciones.zip
+├── serverless.yml                              # API principal (usa outputs de stacks externos)
+├── serverless.policies.yml                     # Stack independiente de IAM policies
+├── serverless.infrastructure.yml               # Stack independiente de infraestructura
+├── policies/serverless.yml                     # Variante de stack de policies
+├── infra/serverless.yml                        # Variante de stack de infraestructura
 ├── Taskfile.yml                                # Task runner
 └── .pre-commit-config.yaml                     # Pre-commit hooks
 ```

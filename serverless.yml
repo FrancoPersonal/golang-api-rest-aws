@@ -1,0 +1,38 @@
+service: cauciones-api
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: provided.al2023
+  architecture: x86_64
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  timeout: 15
+  memorySize: 256
+  environment:
+    CAUCION_TABLE_NAME: ${cf:cauciones-infrastructure-${sls:stage}.CaucionesTableName}
+    JWT_SECRET: ${env:JWT_SECRET, 'dev-secret'}
+
+package:
+  individually: true
+
+functions:
+  postCauciones:
+    handler: bootstrap
+    role: ${cf:cauciones-policies-${sls:stage}.LambdaExecutionRoleArn}
+    package:
+      artifact: build/post_cauciones.zip
+    events:
+      - httpApi:
+          path: /cauciones
+          method: post
+  getCauciones:
+    handler: bootstrap
+    role: ${cf:cauciones-policies-${sls:stage}.LambdaExecutionRoleArn}
+    package:
+      artifact: build/get_cauciones.zip
+    events:
+      - httpApi:
+          path: /cauciones
+          method: get
+

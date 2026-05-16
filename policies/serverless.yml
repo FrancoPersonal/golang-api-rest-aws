@@ -1,0 +1,45 @@
+service: cauciones-policies
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+
+custom:
+  caucionTableName: cauciones-api-${sls:stage}-cauciones
+
+resources:
+  Resources:
+    LambdaExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-lambda-role
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action:
+                - sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        Policies:
+          - PolicyName: ${self:service}-${sls:stage}-dynamodb-access
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - dynamodb:PutItem
+                    - dynamodb:Scan
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.caucionTableName}
+  Outputs:
+    LambdaExecutionRoleArn:
+      Value:
+        Fn::GetAtt:
+          - LambdaExecutionRole
+          - Arn
