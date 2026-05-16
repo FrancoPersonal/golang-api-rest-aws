@@ -32,38 +32,35 @@ tasks:
       - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o {{.BINARY}} ./cmd/lambda
 
   local:api:
-    desc: Start the API locally via SAM (requires Docker)
+    desc: Start the API locally via Serverless Framework (requires Docker)
     deps: [build]
     cmds:
-      - sam local start-api
+      - serverless offline start --stage dev
 
   deploy:guided:
-    desc: Interactive first-time SAM deploy (prompts for config)
+    desc: Interactive first-time Serverless Framework deploy
     deps: [build]
     cmds:
-      - sam build
-      - sam deploy --guided
+      - serverless print --stage dev
+      - serverless deploy --stage dev
 
   deploy:
-    desc: SAM deploy using saved samconfig.toml
+    desc: Deploy using Serverless Framework default stage
     deps: [build]
     cmds:
-      - sam build
-      - sam deploy
+      - serverless deploy
 
   deploy:dev:
     desc: Deploy to dev stack
     deps: [build]
     cmds:
-      - sam build
-      - sam deploy --config-env dev
+      - serverless deploy --stage dev
 
   deploy:prod:
     desc: Deploy to prod stack
     deps: [build]
     cmds:
-      - sam build
-      - sam deploy --config-env prod
+      - serverless deploy --stage prod
 
   pre-commit:
     desc: Run all pre-commit checks (lint + coverage) and update badges

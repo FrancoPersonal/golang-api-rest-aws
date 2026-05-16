@@ -90,6 +90,7 @@ Usar:
 - Codigo limpio y desacoplado
 - Manejo explicito de errores
 - Logs estructurados
+- de necesitarse alguna biblioteca que pueda ser reutilizada en otros proyectos debe ser creada en un repositorio privado y usada como dependencia (ej: github.com/FrancoPersonal/golang-wappers)
 - Interfaces para puertos
 - Unit tests
 - DTOs separados del dominio

@@ -3,23 +3,69 @@ run:
 
 linters:
   enable:
-    - errcheck
+    # Seguridad
+    - gosec
+
+    # Calidad
+    - revive
+    - unconvert
+    - misspell
+
+    # Complejidad
+    - gocyclo
+    - cyclop
+    
+    # Performance
+    - prealloc
+    - perfsprint
+
+    # SQL
+    - sqlclosecheck
+
+    # JSON
+    - nilnil
+
+    # Shadow variables
     - govet
+
+    # Concurrencia
+    - bodyclose
+
+    # Logs
+    - sloglint
+
+    # Analisis estatico base
+    - errcheck
     - staticcheck
     - gosimple
     - ineffassign
     - unused
-    - gofmt
-    - goimports
-    - misspell
+
+    # Calidad extendida
     - gocritic
 
 linters-settings:
   goimports:
     local-prefixes: github.com/FrancoPersonal/golang-api-rest-aws
+  
+  gocyclo:
+    min-complexity: 15
+
+  cyclop:
+    max-complexity: 15
+
+  revive:
+    rules:
+      - name: exported
+        disabled: true
 
 issues:
   exclude-rules:
     - path: _test\.go
       linters:
         - errcheck
+
+formatters:
+  enable:
+    - gofmt
+    - goimports

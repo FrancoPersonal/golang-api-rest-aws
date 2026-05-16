@@ -3,8 +3,8 @@ bootstrap
 coverage.out
 coverage.html
 
-# SAM build artifacts
-.aws-sam/
+# Serverless Framework build artifacts
+.serverless/
 
 # Environment files
 *.env

@@ -6,28 +6,48 @@
 [![Go](https://img.shields.io/badge/go-1.26-00ADD8?logo=go)](https://golang.org)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-REST API for **Cauciones** built with Go 1.26, deployed on AWS Lambda + HTTP API Gateway v2, backed by DynamoDB, following **hexagonal architecture**.
+REST API for **Cauciones** built with Go 1.26+, designed for AWS Lambda behind API Gateway, following **hexagonal architecture**.
 
 ---
 
-## Architecture
+## Arquitectura propuesta
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│                  Primary Adapters                    │
-│           HTTP Handler (net/http + httpadapter/v2)   │
+│                  Adapters (Primary)                  │
+│          handlers | dto | clients (entrada)          │
 └────────────────────┬─────────────────────────────────┘
-                     │ primary port (CaucionUseCase)
+                     │ puertos primarios
 ┌────────────────────▼─────────────────────────────────┐
-│               Application Layer                      │
-│                caucion_usecase.go                    │
+│                   Application                        │
+│                   services/usecases                  │
 └────────────────────┬─────────────────────────────────┘
-                     │ secondary port (CaucionRepository)
+                     │ puertos secundarios
 ┌────────────────────▼─────────────────────────────────┐
-│              Secondary Adapters                      │
-│           DynamoDB Repository                        │
+│                  Domain + Ports                      │
+│              entidades y reglas de negocio           │
+└────────────────────┬─────────────────────────────────┘
+                     │
+┌────────────────────▼─────────────────────────────────┐
+│              Infrastructure / Adapters               │
+│                repositories (DynamoDB)               │
 └──────────────────────────────────────────────────────┘
 ```
+
+Capas obligatorias:
+
+- `domain`
+- `application`
+- `adapters`
+- `infrastructure`
+
+Separacion obligatoria de componentes:
+
+- `handlers`
+- `services`
+- `repositories`
+- `dto`
+- `clients`
 
 ## Endpoints
 
@@ -39,6 +59,17 @@ REST API for **Cauciones** built with Go 1.26, deployed on AWS Lambda + HTTP API
 | `PUT` | `/cauciones/{id}` | Actualizar caución |
 | `DELETE` | `/cauciones/{id}` | Eliminar caución |
 | `PATCH` | `/cauciones/{id}/estado` | Cambiar estado |
+
+### Formato esperado por endpoint
+
+Cada endpoint debe incluir:
+
+- handler
+- request dto
+- response dto
+- service
+- repository
+- tests
 
 ### Estados y transiciones
 
@@ -54,10 +85,11 @@ pendiente ──► vigente ──► vencida
 
 - [Go 1.26+](https://golang.org/dl/)
 - [Task](https://taskfile.dev) — `go install github.com/go-task/task/v3/cmd/task@latest`
-- [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
+- [AWS CLI](https://docs.aws.amazon.com/cli/)
+- [Serverless Framework](https://www.serverless.com/framework/docs/getting-started)
 - [golangci-lint](https://golangci-lint.run/usage/install/)
 - [pre-commit](https://pre-commit.com/#install)
-- Docker (for `task local:api`)
+- Docker (optional, for local workflows)
 
 ### Private module setup
 
@@ -102,40 +134,42 @@ task local:api
 ## Deploy
 
 ```bash
-# First-time interactive deploy
-task deploy:guided
+# Review and adjust stage variables
+serverless print --stage dev
 
-# Subsequent deploys
-task deploy:dev   # dev stack
-task deploy:prod  # prod stack
+# Deploy by stage
+serverless deploy --stage dev
+serverless deploy --stage prod
 ```
 
 ### Environment variables (Lambda)
 
 | Variable | Description |
 |----------|-------------|
-| `CAUCION_TABLE_NAME` | DynamoDB table name (injected by SAM) |
+| `CAUCION_TABLE_NAME` | DynamoDB table name (injected by Serverless Framework) |
 | `LOG_LEVEL` | Log verbosity: `debug`, `info`, `warn`, `error` (default: `info`) |
+
+### Seguridad
+
+- OAuth2/JWT
+- Validacion de scopes
+- No hardcodear secretos
+- Secrets Manager para credenciales
 
 ---
 
-## Project structure
+## Estructura propuesta del proyecto
 
 ```
 .
-├── cmd/lambda/main.go                          # Lambda bootstrap & DI wiring
 ├── internal/
-│   ├── domain/                                 # Entities, errors, state machine
-│   │   └── ports/
-│   │       ├── primary/caucion_usecase.go      # Input port interface
-│   │       └── secondary/caucion_repository.go # Output port interface
-│   ├── application/                            # Business logic (use cases)
-│   └── adapters/
-│       ├── primary/http/                       # HTTP handlers + router
-│       └── secondary/dynamodb/                 # DynamoDB repository
-├── pkg/logger/                                 # Logger interface + wappers adapter
-├── template.yaml                               # AWS SAM infrastructure
-├── samconfig.toml                              # SAM deploy config (dev/prod)
+│   ├── domain/                                 # Entidades y puertos
+│   ├── application/                            # Servicios / casos de uso
+│   ├── adapters/
+│   │   ├── primary/http/                       # Handlers + DTOs de entrada/salida
+│   │   └── secondary/dynamodb/                 # Repositories
+│   └── infrastructure/                         # Wiring, clients externos, config
+├── serverless.yml                              # Infraestructura serverless
 ├── Taskfile.yml                                # Task runner
 └── .pre-commit-config.yaml                     # Pre-commit hooks
 ```
