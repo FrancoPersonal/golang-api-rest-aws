@@ -2,13 +2,13 @@ package dto
 
 import "time"
 
-type CreateCaucionRequest struct {
-	Numero           string    `json:"numero"`
-	Tipo             string    `json:"tipo"`
-	Monto            float64   `json:"monto"`
-	Moneda           string    `json:"moneda"`
-	Beneficiario     string    `json:"beneficiario"`
-	Tomador          string    `json:"tomador"`
-	FechaEmision     time.Time `json:"fecha_emision"`
-	FechaVencimiento time.Time `json:"fecha_vencimiento"`
+type CreateSuretyBondRequest struct {
+	Number      string    `json:"numero"`
+	Type        string    `json:"tipo"`
+	Amount      float64   `json:"monto"`
+	Currency    string    `json:"moneda"`
+	Beneficiary string    `json:"beneficiario"`
+	Holder      string    `json:"tomador"`
+	IssueDate   time.Time `json:"fecha_emision"`
+	ExpiryDate  time.Time `json:"fecha_vencimiento"`
 }

@@ -6,12 +6,12 @@ import (
 	"github.com/FrancoPersonal/golang-api-rest-aws/internal/domain"
 )
 
-type CaucionRepository struct{}
+type SuretyBondRepository struct{}
 
-func NewCaucionRepository() *CaucionRepository {
-	return &CaucionRepository{}
+func NewSuretyBondRepository() *SuretyBondRepository {
+	return &SuretyBondRepository{}
 }
 
-func (r *CaucionRepository) Create(_ context.Context, _ domain.Caucion) error {
+func (r *SuretyBondRepository) Create(_ context.Context, _ domain.SuretyBond) error {
 	return domain.ErrInternal
 }

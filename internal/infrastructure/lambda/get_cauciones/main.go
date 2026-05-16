@@ -29,13 +29,13 @@ func main() {
 	jwtSecret := os.Getenv("JWT_SECRET")
 
 	dbClient := awsdynamodb.NewFromConfig(cfg)
-	repo := dynamodbrepo.NewCaucionRepository(dbClient, tableName)
-	service := services.NewCaucionService(repo, nil, nil)
-	handler := handlers.NewCaucionHandler(service)
+	repo := dynamodbrepo.NewSuretyBondRepository(dbClient, tableName)
+	service := services.NewSuretyBondService(repo, nil, nil)
+	handler := handlers.NewSuretyBondHandler(service)
 
 	logger := log.New(os.Stdout, "", log.LstdFlags)
 	list := middleware.Chain(
-		handler.GetCauciones,
+		handler.ListSuretyBonds,
 		middleware.LoggingMiddleware(logger),
 		middleware.JWTAuthMiddleware(jwtSecret),
 	)

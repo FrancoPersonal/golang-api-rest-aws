@@ -18,23 +18,23 @@ import (
 
 type routerUseCaseMock struct{}
 
-func (routerUseCaseMock) Create(_ context.Context, _ domain.CreateCaucionInput) (domain.Caucion, error) {
-	return domain.Caucion{ID: "id-1", Numero: "C-001", CreatedAt: time.Now().UTC()}, nil
+func (routerUseCaseMock) Create(_ context.Context, _ domain.CreateSuretyBondInput) (domain.SuretyBond, error) {
+	return domain.SuretyBond{ID: "id-1", Number: "C-001", CreatedAt: time.Now().UTC()}, nil
 }
 
-func (routerUseCaseMock) List(_ context.Context) ([]domain.Caucion, error) {
-	return []domain.Caucion{{ID: "id-1"}}, nil
+func (routerUseCaseMock) List(_ context.Context) ([]domain.SuretyBond, error) {
+	return []domain.SuretyBond{{ID: "id-1"}}, nil
 }
 
 func TestRouterJWTMiddleware(t *testing.T) {
-	h := handlers.NewCaucionHandler(routerUseCaseMock{})
+	h := handlers.NewSuretyBondHandler(routerUseCaseMock{})
 	r := NewRouter(h, nil, "secret")
 
-	body := `{"numero":"C-1","tipo":"tradicional","monto":1000,"moneda":"ARS","beneficiario":"Banco","tomador":"Cliente","fecha_emision":"2026-01-01T00:00:00Z","fecha_vencimiento":"2026-01-02T00:00:00Z"}`
+	body := `{"numero":"C-1","tipo":"traditional","monto":1000,"moneda":"ARS","beneficiario":"Banco","tomador":"Cliente","fecha_emision":"2026-01-01T00:00:00Z","fecha_vencimiento":"2026-01-02T00:00:00Z"}`
 
 	unauthorizedResp, err := r.Handle(context.Background(), events.APIGatewayProxyRequest{
 		HTTPMethod: "POST",
-		Path:       "/cauciones",
+		Path:       "/suretyBonds",
 		Body:       body,
 	})
 	require.NoError(t, err)
@@ -43,7 +43,7 @@ func TestRouterJWTMiddleware(t *testing.T) {
 	token := signJWT(t, "secret", time.Now().Add(5*time.Minute).Unix())
 	authorizedResp, err := r.Handle(context.Background(), events.APIGatewayProxyRequest{
 		HTTPMethod: "POST",
-		Path:       "/cauciones",
+		Path:       "/suretyBonds",
 		Body:       body,
 		Headers: map[string]string{
 			"Authorization": "Bearer " + token,
@@ -54,14 +54,14 @@ func TestRouterJWTMiddleware(t *testing.T) {
 
 	unauthorizedGetResp, err := r.Handle(context.Background(), events.APIGatewayProxyRequest{
 		HTTPMethod: "GET",
-		Path:       "/cauciones",
+		Path:       "/suretyBonds",
 	})
 	require.NoError(t, err)
 	require.Equal(t, 401, unauthorizedGetResp.StatusCode)
 
 	authorizedGetResp, err := r.Handle(context.Background(), events.APIGatewayProxyRequest{
 		HTTPMethod: "GET",
-		Path:       "/cauciones",
+		Path:       "/suretyBonds",
 		Headers: map[string]string{
 			"Authorization": "Bearer " + token,
 		},

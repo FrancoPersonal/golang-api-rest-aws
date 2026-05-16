@@ -11,13 +11,13 @@ import (
 	repop "github.com/FrancoPersonal/golang-api-rest-aws/internal/domain/ports/repository"
 )
 
-type CaucionService struct {
-	repo  repop.CaucionRepository
+type SuretyBondService struct {
+	repo  repop.SuretyBondRepository
 	now   func() time.Time
 	newID func() string
 }
 
-func NewCaucionService(repo repop.CaucionRepository, now func() time.Time, newID func() string) *CaucionService {
+func NewSuretyBondService(repo repop.SuretyBondRepository, now func() time.Time, newID func() string) *SuretyBondService {
 	if now == nil {
 		now = time.Now
 	}
@@ -25,72 +25,72 @@ func NewCaucionService(repo repop.CaucionRepository, now func() time.Time, newID
 		newID = uuid.NewString
 	}
 
-	return &CaucionService{
+	return &SuretyBondService{
 		repo:  repo,
 		now:   now,
 		newID: newID,
 	}
 }
 
-func (s *CaucionService) Create(ctx context.Context, input domain.CreateCaucionInput) (domain.Caucion, error) {
+func (s *SuretyBondService) Create(ctx context.Context, input domain.CreateSuretyBondInput) (domain.SuretyBond, error) {
 	if err := validateCreateInput(input); err != nil {
-		return domain.Caucion{}, err
+		return domain.SuretyBond{}, err
 	}
 
 	now := s.now().UTC()
-	c := domain.Caucion{
-		ID:               s.newID(),
-		Numero:           strings.TrimSpace(input.Numero),
-		Tipo:             strings.TrimSpace(input.Tipo),
-		Monto:            input.Monto,
-		Moneda:           strings.ToUpper(strings.TrimSpace(input.Moneda)),
-		Estado:           domain.EstadoPendiente,
-		Beneficiario:     strings.TrimSpace(input.Beneficiario),
-		Tomador:          strings.TrimSpace(input.Tomador),
-		FechaEmision:     input.FechaEmision.UTC(),
-		FechaVencimiento: input.FechaVencimiento.UTC(),
-		CreatedAt:        now,
-		UpdatedAt:        now,
+	c := domain.SuretyBond{
+		ID:          s.newID(),
+		Number:      strings.TrimSpace(input.Number),
+		Type:        strings.TrimSpace(input.Type),
+		Amount:      input.Amount,
+		Currency:    strings.ToUpper(strings.TrimSpace(input.Currency)),
+		Status:      domain.StatusPending,
+		Beneficiary: strings.TrimSpace(input.Beneficiary),
+		Holder:      strings.TrimSpace(input.Holder),
+		IssueDate:   input.IssueDate.UTC(),
+		ExpiryDate:  input.ExpiryDate.UTC(),
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 
 	if err := s.repo.Create(ctx, c); err != nil {
-		return domain.Caucion{}, err
+		return domain.SuretyBond{}, err
 	}
 
 	return c, nil
 }
 
-func (s *CaucionService) List(ctx context.Context) ([]domain.Caucion, error) {
+func (s *SuretyBondService) List(ctx context.Context) ([]domain.SuretyBond, error) {
 	items, err := s.repo.List(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	if items == nil {
-		return []domain.Caucion{}, nil
+		return []domain.SuretyBond{}, nil
 	}
 
 	return items, nil
 }
 
-func validateCreateInput(input domain.CreateCaucionInput) error {
-	if strings.TrimSpace(input.Numero) == "" ||
-		strings.TrimSpace(input.Tipo) == "" ||
-		strings.TrimSpace(input.Moneda) == "" ||
-		strings.TrimSpace(input.Beneficiario) == "" ||
-		strings.TrimSpace(input.Tomador) == "" {
+func validateCreateInput(input domain.CreateSuretyBondInput) error {
+	if strings.TrimSpace(input.Number) == "" ||
+		strings.TrimSpace(input.Type) == "" ||
+		strings.TrimSpace(input.Currency) == "" ||
+		strings.TrimSpace(input.Beneficiary) == "" ||
+		strings.TrimSpace(input.Holder) == "" {
 		return domain.ErrInvalidInput
 	}
 
-	if input.Monto <= 0 {
+	if input.Amount <= 0 {
 		return domain.ErrInvalidInput
 	}
 
-	if input.FechaEmision.IsZero() || input.FechaVencimiento.IsZero() {
+	if input.IssueDate.IsZero() || input.ExpiryDate.IsZero() {
 		return domain.ErrInvalidInput
 	}
 
-	if input.FechaVencimiento.Before(input.FechaEmision) {
+	if input.ExpiryDate.Before(input.IssueDate) {
 		return domain.ErrInvalidInput
 	}
 

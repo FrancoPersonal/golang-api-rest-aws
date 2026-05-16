@@ -10,7 +10,7 @@ import (
 )
 
 func TestCreateReturnsInternalError(t *testing.T) {
-	repo := NewCaucionRepository()
-	err := repo.Create(context.Background(), domain.Caucion{ID: "id"})
+	repo := NewSuretyBondRepository()
+	err := repo.Create(context.Background(), domain.SuretyBond{ID: "id"})
 	require.ErrorIs(t, err, domain.ErrInternal)
 }

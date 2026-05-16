@@ -32,6 +32,8 @@ Do not move business rules into adapters.
 - Do not refactor unrelated code.
 - Keep public interfaces stable unless a task explicitly asks for API changes.
 - If your change introduces dead code, remove only what your change made unused.
+- All documentation and code must be in English.
+- Use English for README content, comments, logs, error messages, commit messages, variable names, and identifiers.
 
 ## Testing and Verification
 
@@ -58,18 +60,18 @@ If a command cannot run in the environment, state that clearly in the final repo
 
 ## Copilot Instructions
 
-Todas las APIs deben desarrollarse en Golang 1.26 o superior.
+All APIs must be developed in Golang 1.26 or higher.
 
-### Arquitectura
+### Architecture
 
-Usar arquitectura hexagonal:
+Use hexagonal architecture:
 
 - domain
 - application
 - adapters
 - infrastructure
 
-Separar:
+Separate:
 - handlers
 - services
 - repositories
@@ -78,63 +80,65 @@ Separar:
 
 ### AWS
 
-La API debe ejecutarse en AWS Lambda detras de API Gateway.
+The API must run on AWS Lambda behind API Gateway.
 
-Usar:
+Use:
 - aws-lambda-go
 - API Gateway Proxy Request/Response
 - context.Context
 
-### Reglas
+### Rules
 
-- Codigo limpio y desacoplado
-- Manejo explicito de errores
-- Logs estructurados
-- de necesitarse alguna biblioteca que pueda ser reutilizada en otros proyectos debe ser creada en un repositorio privado y usada como dependencia (ej: github.com/FrancoPersonal/golang-wappers)
-- Interfaces para puertos
+- Clean and decoupled code
+- Explicit error handling
+- Structured logs
+- If a reusable library is needed for other projects, it must be created in a private repository and used as a dependency (e.g., github.com/FrancoPersonal/golang-wappers)
+- Interfaces for ports
 - Unit tests
-- DTOs separados del dominio
-- No usar variables globales
-- Inyeccion de dependencias
+- DTOs separated from the domain
+- Do not use global variables
+- Dependency injection
+- All documentation and code must be written in English.
+- All variable names in code must be written in English.
 
-### Base de datos
+### Database
 
-Si hay persistencia:
-- usar repository pattern
-- DynamoDB como base de datos
-- queries parametrizadas
+If persistence is required:
+- use repository pattern
+- use DynamoDB as database
+- use parameterized queries
 
-### Seguridad
+### Security
 
 - OAuth2/JWT
-- Validacion de scopes
-- No hardcodear secretos
-- Secrets Manager para credenciales
+- Scope validation
+- Do not hardcode secrets
+- Use Secrets Manager for credentials
 
 ### Serverless
 
-Generar:
+Generate:
 - serverless.yml
 - serverless.policies.yml
 - serverless.infrastructure.yml
-- IAM minimo necesario
-- variables por stage
-- empaquetado optimizado
-- los compilados de Lambda deben generarse en la carpeta build/
-- cada Lambda debe generar su propio compilado separado (un artefacto independiente por funcion)
-- las politicas IAM y la infraestructura deben estar separadas en archivos serverless independientes
-- los archivos de politicas e infraestructura deben poder desplegarse de forma independiente
+- minimum required IAM
+- stage-based variables
+- optimized packaging
+- Lambda binaries must be generated under the build/ directory
+- each Lambda must generate its own separated binary artifact
+- IAM policies and infrastructure must be split into independent serverless files
+- policy and infrastructure files must be independently deployable
 
 ### Testing
 
-Generar:
+Generate:
 - mocks
 - table tests
 - coverage
 
-### Formato esperado
+### Expected format
 
-Cada endpoint debe incluir:
+Each endpoint must include:
 - handler
 - request dto
 - response dto

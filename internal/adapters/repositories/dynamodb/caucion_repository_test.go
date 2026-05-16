@@ -33,28 +33,28 @@ func (m *putItemClientMock) Scan(_ context.Context, _ *awsdynamodb.ScanInput, _ 
 
 func TestCreateSuccess(t *testing.T) {
 	m := &putItemClientMock{}
-	repo := NewCaucionRepository(m, "cauciones")
+	repo := NewSuretyBondRepository(m, "suretyBonds")
 
-	err := repo.Create(context.Background(), domain.Caucion{ID: "1", CreatedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC()})
+	err := repo.Create(context.Background(), domain.SuretyBond{ID: "1", CreatedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC()})
 	require.NoError(t, err)
 	require.True(t, m.called)
 }
 
 func TestCreateConflict(t *testing.T) {
 	m := &putItemClientMock{err: &types.ConditionalCheckFailedException{}}
-	repo := NewCaucionRepository(m, "cauciones")
+	repo := NewSuretyBondRepository(m, "suretyBonds")
 
-	err := repo.Create(context.Background(), domain.Caucion{ID: "1", CreatedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC()})
+	err := repo.Create(context.Background(), domain.SuretyBond{ID: "1", CreatedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC()})
 	require.ErrorIs(t, err, domain.ErrConflict)
 }
 
 func TestListSuccess(t *testing.T) {
 	now := time.Now().UTC()
-	item, err := attributevalue.MarshalMap(domain.Caucion{ID: "1", Numero: "C-1", CreatedAt: now, UpdatedAt: now})
+	item, err := attributevalue.MarshalMap(domain.SuretyBond{ID: "1", Number: "C-1", CreatedAt: now, UpdatedAt: now})
 	require.NoError(t, err)
 
 	m := &putItemClientMock{items: []map[string]types.AttributeValue{item}}
-	repo := NewCaucionRepository(m, "cauciones")
+	repo := NewSuretyBondRepository(m, "suretyBonds")
 
 	result, err := repo.List(context.Background())
 	require.NoError(t, err)
@@ -64,7 +64,7 @@ func TestListSuccess(t *testing.T) {
 
 func TestListInternalError(t *testing.T) {
 	m := &putItemClientMock{err: assertiveErr{}}
-	repo := NewCaucionRepository(m, "cauciones")
+	repo := NewSuretyBondRepository(m, "suretyBonds")
 
 	result, err := repo.List(context.Background())
 	require.Nil(t, result)

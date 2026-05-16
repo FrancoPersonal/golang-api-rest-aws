@@ -17,7 +17,7 @@ func main() {
 		panic("src and dst are required")
 	}
 
-	if err := os.MkdirAll(filepath.Dir(*dst), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(*dst), 0o750); err != nil {
 		panic(err)
 	}
 
@@ -25,16 +25,22 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer zipFile.Close()
+	defer func() {
+		_ = zipFile.Close()
+	}()
 
 	zw := zip.NewWriter(zipFile)
-	defer zw.Close()
+	defer func() {
+		_ = zw.Close()
+	}()
 
 	srcFile, err := os.Open(*src)
 	if err != nil {
 		panic(err)
 	}
-	defer srcFile.Close()
+	defer func() {
+		_ = srcFile.Close()
+	}()
 
 	w, err := zw.Create("bootstrap")
 	if err != nil {

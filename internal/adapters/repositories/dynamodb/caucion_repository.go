@@ -17,24 +17,24 @@ type PutItemClient interface {
 	Scan(ctx context.Context, params *awsdynamodb.ScanInput, optFns ...func(*awsdynamodb.Options)) (*awsdynamodb.ScanOutput, error)
 }
 
-type CaucionRepository struct {
+type SuretyBondRepository struct {
 	client    PutItemClient
 	tableName string
 }
 
-func NewCaucionRepository(client PutItemClient, tableName string) *CaucionRepository {
-	return &CaucionRepository{
+func NewSuretyBondRepository(client PutItemClient, tableName string) *SuretyBondRepository {
+	return &SuretyBondRepository{
 		client:    client,
 		tableName: tableName,
 	}
 }
 
-func (r *CaucionRepository) Create(ctx context.Context, caucion domain.Caucion) error {
+func (r *SuretyBondRepository) Create(ctx context.Context, suretyBond domain.SuretyBond) error {
 	if r.tableName == "" || r.client == nil {
 		return domain.ErrInternal
 	}
 
-	item, err := attributevalue.MarshalMap(caucion)
+	item, err := attributevalue.MarshalMap(suretyBond)
 	if err != nil {
 		return domain.ErrInternal
 	}
@@ -55,7 +55,7 @@ func (r *CaucionRepository) Create(ctx context.Context, caucion domain.Caucion) 
 	return nil
 }
 
-func (r *CaucionRepository) List(ctx context.Context) ([]domain.Caucion, error) {
+func (r *SuretyBondRepository) List(ctx context.Context) ([]domain.SuretyBond, error) {
 	if r.tableName == "" || r.client == nil {
 		return nil, domain.ErrInternal
 	}
@@ -66,13 +66,13 @@ func (r *CaucionRepository) List(ctx context.Context) ([]domain.Caucion, error) 
 	}
 
 	if len(out.Items) == 0 {
-		return []domain.Caucion{}, nil
+		return []domain.SuretyBond{}, nil
 	}
 
-	var cauciones []domain.Caucion
-	if err := attributevalue.UnmarshalListOfMaps(out.Items, &cauciones); err != nil {
+	var suretyBonds []domain.SuretyBond
+	if err := attributevalue.UnmarshalListOfMaps(out.Items, &suretyBonds); err != nil {
 		return nil, domain.ErrInternal
 	}
 
-	return cauciones, nil
+	return suretyBonds, nil
 }

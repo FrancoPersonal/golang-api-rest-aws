@@ -1,3 +1,5 @@
+version: "2"
+
 run:
   timeout: 5m
 
@@ -9,7 +11,6 @@ linters:
     # Calidad
     - revive
     - unconvert
-    - misspell
 
     # Complejidad
     - gocyclo
@@ -37,33 +38,32 @@ linters:
     # Analisis estatico base
     - errcheck
     - staticcheck
-    - gosimple
     - ineffassign
     - unused
 
     # Calidad extendida
     - gocritic
+  settings:
+    goimports:
+      local-prefixes: github.com/FrancoPersonal/golang-api-rest-aws
 
-linters-settings:
-  goimports:
-    local-prefixes: github.com/FrancoPersonal/golang-api-rest-aws
-  
-  gocyclo:
-    min-complexity: 15
+    gocyclo:
+      min-complexity: 15
 
-  cyclop:
-    max-complexity: 15
+    cyclop:
+      max-complexity: 15
 
-  revive:
-    rules:
-      - name: exported
-        disabled: true
+    revive:
+      rules:
+        - name: exported
+          disabled: true
 
 issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
 
 formatters:
   enable:

@@ -13,24 +13,24 @@ import (
 )
 
 type Router struct {
-	createCaucion middleware.Handler
-	listCauciones middleware.Handler
+	createSuretyBond middleware.Handler
+	listSuretyBonds  middleware.Handler
 }
 
-func NewRouter(handler *handlers.CaucionHandler, logger *log.Logger, jwtSecret string) *Router {
+func NewRouter(handler *handlers.SuretyBondHandler, logger *log.Logger, jwtSecret string) *Router {
 	create := middleware.Chain(
-		handler.CreateCaucion,
+		handler.CreateSuretyBond,
 		middleware.LoggingMiddleware(logger),
 		middleware.JWTAuthMiddleware(jwtSecret),
 	)
 
 	list := middleware.Chain(
-		handler.GetCauciones,
+		handler.ListSuretyBonds,
 		middleware.LoggingMiddleware(logger),
 		middleware.JWTAuthMiddleware(jwtSecret),
 	)
 
-	return &Router{createCaucion: create, listCauciones: list}
+	return &Router{createSuretyBond: create, listSuretyBonds: list}
 }
 
 func (r *Router) Handle(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -40,12 +40,12 @@ func (r *Router) Handle(ctx context.Context, req events.APIGatewayProxyRequest) 
 		path = "/"
 	}
 
-	if method == "POST" && path == "/cauciones" {
-		return r.createCaucion(ctx, req)
+	if method == "POST" && path == "/suretyBonds" {
+		return r.createSuretyBond(ctx, req)
 	}
 
-	if method == "GET" && path == "/cauciones" {
-		return r.listCauciones(ctx, req)
+	if method == "GET" && path == "/suretyBonds" {
+		return r.listSuretyBonds(ctx, req)
 	}
 
 	return dto.Fail(404, "not_found", "route not found"), nil

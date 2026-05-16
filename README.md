@@ -10,22 +10,22 @@ REST API for **Cauciones** built with Go 1.26+, designed for AWS Lambda behind A
 
 ---
 
-## Arquitectura propuesta
+## Proposed Architecture
 
 ```
 ┌──────────────────────────────────────────────────────┐
 │                  Adapters (Primary)                  │
-│          handlers | dto | clients (entrada)          │
+│          handlers | dto | clients (input)            │
 └────────────────────┬─────────────────────────────────┘
-                     │ puertos primarios
+                     │ primary ports
 ┌────────────────────▼─────────────────────────────────┐
 │                   Application                        │
 │                   services/usecases                  │
 └────────────────────┬─────────────────────────────────┘
-                     │ puertos secundarios
+                     │ secondary ports
 ┌────────────────────▼─────────────────────────────────┐
 │                  Domain + Ports                      │
-│              entidades y reglas de negocio           │
+│              entities and business rules             │
 └────────────────────┬─────────────────────────────────┘
                      │
 ┌────────────────────▼─────────────────────────────────┐
@@ -34,14 +34,14 @@ REST API for **Cauciones** built with Go 1.26+, designed for AWS Lambda behind A
 └──────────────────────────────────────────────────────┘
 ```
 
-Capas obligatorias:
+Required layers:
 
 - `domain`
 - `application`
 - `adapters`
 - `infrastructure`
 
-Separacion obligatoria de componentes:
+Required component separation:
 
 - `handlers`
 - `services`
@@ -53,16 +53,16 @@ Separacion obligatoria de componentes:
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/cauciones` | Crear caución |
-| `GET` | `/cauciones` | Listar cauciones |
-| `GET` | `/cauciones/{id}` | Obtener caución por ID |
-| `PUT` | `/cauciones/{id}` | Actualizar caución |
-| `DELETE` | `/cauciones/{id}` | Eliminar caución |
-| `PATCH` | `/cauciones/{id}/estado` | Cambiar estado |
+| `POST` | `/cauciones` | Create caucion |
+| `GET` | `/cauciones` | List cauciones |
+| `GET` | `/cauciones/{id}` | Get caucion by ID |
+| `PUT` | `/cauciones/{id}` | Update caucion |
+| `DELETE` | `/cauciones/{id}` | Delete caucion |
+| `PATCH` | `/cauciones/{id}/estado` | Change status |
 
-### Formato esperado por endpoint
+### Expected endpoint format
 
-Cada endpoint debe incluir:
+Each endpoint must include:
 
 - handler
 - request dto
@@ -71,12 +71,12 @@ Cada endpoint debe incluir:
 - repository
 - tests
 
-### Estados y transiciones
+### States and transitions
 
 ```
-pendiente ──► vigente ──► vencida
+pending ──► active ──► expired
      │              │
-     └──────────────┴──► cancelada
+     └──────────────┴──► canceled
 ```
 
 ---
@@ -220,28 +220,28 @@ task deploy:dev
 | `JWT_SECRET` | JWT signing secret used by authorization middleware |
 | `LOG_LEVEL` | Log verbosity: `debug`, `info`, `warn`, `error` (default: `info`) |
 
-### Seguridad
+### Security
 
 - OAuth2/JWT
-- Validacion de scopes
-- No hardcodear secretos
-- Secrets Manager para credenciales
+- Scope validation
+- Do not hardcode secrets
+- Use Secrets Manager for credentials
 
 ---
 
-## Estructura actual del proyecto
+## Current project structure
 
 ```
 .
 ├── internal/
-│   ├── domain/                                 # Entidades, errores y puertos
+│   ├── domain/                                 # Entities, errors and ports
 │   │   └── ports/
 │   │       ├── usecase/
 │   │       └── repository/
-│   ├── application/                            # Servicios de aplicacion
+│   ├── application/                            # Application services
 │   │   └── services/
 │   ├── adapters/
-│   │   ├── http/                               # Router, handlers, DTOs y middleware
+│   │   ├── http/                               # Router, handlers, DTOs and middleware
 │   │   └── repositories/
 │   │       ├── dynamodb/
 │   │       └── sqlserver/
@@ -250,19 +250,19 @@ task deploy:dev
 │       └── lambda/
 │           ├── post_cauciones/main.go          # Lambda POST /cauciones
 │           └── get_cauciones/main.go           # Lambda GET /cauciones
-├── pkg/logger/                                 # Wrapper de logger
-├── scripts/                                    # Scripts de coverage, badge y packaging
+├── pkg/logger/                                 # Logger wrapper
+├── scripts/                                    # Coverage, badge and packaging scripts
 │   └── package_lambda.go
-├── build/                                      # Compilados separados por Lambda
+├── build/                                      # Separate binaries per Lambda
 │   ├── post_cauciones/bootstrap
 │   ├── post_cauciones.zip
 │   ├── get_cauciones/bootstrap
 │   └── get_cauciones.zip
-├── serverless.yml                              # API principal (usa outputs de stacks externos)
-├── serverless.policies.yml                     # Stack independiente de IAM policies
-├── serverless.infrastructure.yml               # Stack independiente de infraestructura
-├── policies/serverless.yml                     # Variante de stack de policies
-├── infra/serverless.yml                        # Variante de stack de infraestructura
+├── serverless.yml                              # Main API stack (uses outputs from external stacks)
+├── serverless.policies.yml                     # Independent IAM policies stack
+├── serverless.infrastructure.yml               # Independent infrastructure stack
+├── policies/serverless.yml                     # Policies stack variant
+├── infra/serverless.yml                        # Infrastructure stack variant
 ├── Taskfile.yml                                # Task runner
 └── .pre-commit-config.yaml                     # Pre-commit hooks
 ```

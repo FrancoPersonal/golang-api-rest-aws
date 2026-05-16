@@ -12,29 +12,29 @@ import (
 	usecasep "github.com/FrancoPersonal/golang-api-rest-aws/internal/domain/ports/usecase"
 )
 
-type CaucionHandler struct {
-	useCase usecasep.CaucionUseCase
+type SuretyBondHandler struct {
+	useCase usecasep.SuretyBondUseCase
 }
 
-func NewCaucionHandler(useCase usecasep.CaucionUseCase) *CaucionHandler {
-	return &CaucionHandler{useCase: useCase}
+func NewSuretyBondHandler(useCase usecasep.SuretyBondUseCase) *SuretyBondHandler {
+	return &SuretyBondHandler{useCase: useCase}
 }
 
-func (h *CaucionHandler) CreateCaucion(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var in dto.CreateCaucionRequest
+func (h *SuretyBondHandler) CreateSuretyBond(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var in dto.CreateSuretyBondRequest
 	if err := json.Unmarshal([]byte(req.Body), &in); err != nil {
 		return dto.Fail(400, "invalid_json", "request body must be valid JSON"), nil
 	}
 
-	created, err := h.useCase.Create(ctx, domain.CreateCaucionInput{
-		Numero:           in.Numero,
-		Tipo:             in.Tipo,
-		Monto:            in.Monto,
-		Moneda:           in.Moneda,
-		Beneficiario:     in.Beneficiario,
-		Tomador:          in.Tomador,
-		FechaEmision:     in.FechaEmision,
-		FechaVencimiento: in.FechaVencimiento,
+	created, err := h.useCase.Create(ctx, domain.CreateSuretyBondInput{
+		Number:      in.Number,
+		Type:        in.Type,
+		Amount:      in.Amount,
+		Currency:    in.Currency,
+		Beneficiary: in.Beneficiary,
+		Holder:      in.Holder,
+		IssueDate:   in.IssueDate,
+		ExpiryDate:  in.ExpiryDate,
 	})
 	if err != nil {
 		return mapError(err), nil
@@ -44,12 +44,12 @@ func (h *CaucionHandler) CreateCaucion(ctx context.Context, req events.APIGatewa
 	if resp.Headers == nil {
 		resp.Headers = map[string]string{}
 	}
-	resp.Headers["Location"] = "/cauciones/" + created.ID
+	resp.Headers["Location"] = "/suretyBonds/" + created.ID
 
 	return resp, nil
 }
 
-func (h *CaucionHandler) GetCauciones(ctx context.Context, _ events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func (h *SuretyBondHandler) ListSuretyBonds(ctx context.Context, _ events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	items, err := h.useCase.List(ctx)
 	if err != nil {
 		return mapError(err), nil
