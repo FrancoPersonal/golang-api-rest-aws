@@ -66,10 +66,26 @@ tasks:
       - sam deploy --config-env prod
 
   pre-commit:
-    desc: Run all pre-commit checks (lint + coverage)
+    desc: Run all pre-commit checks (lint + coverage) and update badges
     cmds:
-      - task: lint
-      - task: coverage
+      - task: badge:lint
+      - task: badge:coverage
+
+  badge:lint:
+    desc: Run golangci-lint and update the lint badge in README.md
+    cmds:
+      - bash scripts/update_lint_badge.sh
+
+  badge:coverage:
+    desc: Run tests and update the coverage badge in README.md
+    cmds:
+      - bash scripts/check_coverage.sh
+
+  badge:
+    desc: Update both lint and coverage badges in README.md
+    cmds:
+      - task: badge:lint
+      - task: badge:coverage
 
   tidy:
     desc: Tidy and verify Go modules
