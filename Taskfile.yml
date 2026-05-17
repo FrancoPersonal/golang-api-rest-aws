@@ -129,3 +129,19 @@ tasks:
       - go mod download
       - go mod tidy
       - go mod verify
+
+  docs:
+    desc: Generate API documentation (Swagger + Postman collection)
+    cmds:
+      - task: docs:swagger
+      - task: docs:postman
+
+  docs:swagger:
+    desc: Generate OpenAPI 3.0 (Swagger) specification
+    cmds:
+      - bash scripts/generate_swagger.sh
+
+  docs:postman:
+    desc: Generate Postman collection for API testing
+    cmds:
+      - bash scripts/generate_postman.sh

@@ -1,0 +1,526 @@
+#!/usr/bin/env bash
+# scripts/generate_swagger.sh
+# Generates OpenAPI 3.0 (Swagger) specification file for the Cauciones API.
+# Output: docs/openapi.json
+set -euo pipefail
+
+DOCS_DIR="docs"
+SWAGGER_FILE="${DOCS_DIR}/openapi.json"
+
+echo "▶ Generating OpenAPI 3.0 specification..."
+
+mkdir -p "${DOCS_DIR}"
+
+cat > "${SWAGGER_FILE}" <<'EOF'
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Cauciones API",
+    "description": "REST API for managing surety bonds (cauciones) with AWS Lambda backend",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Franco Personal",
+      "url": "https://github.com/FrancoPersonal"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development (via Serverless offline)"
+    },
+    {
+      "url": "https://api.example.com",
+      "description": "Production environment"
+    }
+  ],
+  "paths": {
+    "/cauciones": {
+      "post": {
+        "summary": "Create a new surety bond",
+        "operationId": "createSuretyBond",
+        "tags": ["Cauciones"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSuretyBondRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Surety bond created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "get": {
+        "summary": "List all surety bonds",
+        "operationId": "listSuretyBonds",
+        "tags": ["Cauciones"],
+        "responses": {
+          "200": {
+            "description": "List of surety bonds retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/cauciones/{id}": {
+      "get": {
+        "summary": "Get surety bond by ID",
+        "operationId": "getSuretyBond",
+        "tags": ["Cauciones"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Surety bond ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Surety bond retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update surety bond",
+        "operationId": "updateSuretyBond",
+        "tags": ["Cauciones"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Surety bond ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSuretyBondRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Surety bond updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete surety bond",
+        "operationId": "deleteSuretyBond",
+        "tags": ["Cauciones"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Surety bond ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Surety bond deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/cauciones/{id}/estado": {
+      "patch": {
+        "summary": "Change surety bond status",
+        "operationId": "changeSuretyBondStatus",
+        "tags": ["Cauciones"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Surety bond ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Surety bond status changed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateSuretyBondRequest": {
+        "type": "object",
+        "required": ["numero", "tipo", "monto", "moneda", "beneficiario", "tomador", "fecha_emision", "fecha_vencimiento"],
+        "properties": {
+          "numero": {
+            "type": "string",
+            "description": "Surety bond number"
+          },
+          "tipo": {
+            "type": "string",
+            "description": "Bond type (e.g., customs, performance, payment)"
+          },
+          "monto": {
+            "type": "number",
+            "format": "double",
+            "description": "Bond amount"
+          },
+          "moneda": {
+            "type": "string",
+            "description": "Currency code (USD, EUR, etc.)"
+          },
+          "beneficiario": {
+            "type": "string",
+            "description": "Beneficiary of the bond"
+          },
+          "tomador": {
+            "type": "string",
+            "description": "Bond holder"
+          },
+          "fecha_emision": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Issue date (RFC 3339)"
+          },
+          "fecha_vencimiento": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Expiry date (RFC 3339)"
+          }
+        }
+      },
+      "UpdateSuretyBondRequest": {
+        "type": "object",
+        "properties": {
+          "monto": {
+            "type": "number",
+            "format": "double"
+          },
+          "beneficiario": {
+            "type": "string"
+          },
+          "tomador": {
+            "type": "string"
+          },
+          "fecha_vencimiento": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ChangeStatusRequest": {
+        "type": "object",
+        "required": ["estado"],
+        "properties": {
+          "estado": {
+            "type": "string",
+            "enum": ["pending", "active", "expired", "canceled"],
+            "description": "New status for the surety bond"
+          }
+        }
+      },
+      "SuretyBond": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "numero": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "monto": {
+            "type": "number",
+            "format": "double"
+          },
+          "moneda": {
+            "type": "string"
+          },
+          "beneficiario": {
+            "type": "string"
+          },
+          "tomador": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string",
+            "enum": ["pending", "active", "expired", "canceled"]
+          },
+          "fecha_emision": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fecha_vencimiento": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fecha_creacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fecha_actualizacion": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SuretyBond"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SuretyBond"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Unauthorized - missing or invalid JWT token",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token required for authentication"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Cauciones",
+      "description": "Surety bond operations"
+    }
+  ]
+}
+EOF
+
+echo "✓ OpenAPI specification generated: ${SWAGGER_FILE}"
+echo "  Ready to use with Swagger UI, Postman, or other tools"
