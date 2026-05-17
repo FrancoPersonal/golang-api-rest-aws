@@ -1,7 +1,7 @@
 # Cauciones API
 
 [![CI](https://github.com/FrancoPersonal/golang-api-rest-aws/actions/workflows/ci.yml/badge.svg)](https://github.com/FrancoPersonal/golang-api-rest-aws/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-0%25-red)](coverage.out)
+[![Coverage](https://img.shields.io/badge/coverage-94%25-brightgreen)](coverage.out)
 [![Lint](https://img.shields.io/badge/lint-failing-red)](https://golangci-lint.run)
 [![Go](https://img.shields.io/badge/go-1.26-00ADD8?logo=go)](https://golang.org)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)

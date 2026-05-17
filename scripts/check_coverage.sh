@@ -9,7 +9,13 @@ COVERAGE_FILE="coverage.out"
 README="README.md"
 
 echo "▶ Running tests with coverage..."
-go test -coverprofile="${COVERAGE_FILE}" ./...
+# Exclude lambda bootstrap mains and the packaging script from coverage:
+# those are wiring/infrastructure code that cannot be unit-tested without
+# a live Lambda runtime or real filesystem tooling.
+PKGS=$(go list ./... | grep -v \
+  -e 'internal/infrastructure/lambda' \
+  -e '^github.com/FrancoPersonal/golang-api-rest-aws/scripts$')
+go test -coverprofile="${COVERAGE_FILE}" ${PKGS}
 
 TOTAL=$(go tool cover -func="${COVERAGE_FILE}" | grep "^total:" | awk '{print $3}' | tr -d '%')
 TOTAL_INT=${TOTAL%.*}

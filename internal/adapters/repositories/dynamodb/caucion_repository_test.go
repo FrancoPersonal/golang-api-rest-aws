@@ -71,6 +71,40 @@ func TestListInternalError(t *testing.T) {
 	require.ErrorIs(t, err, domain.ErrInternal)
 }
 
+func TestCreateMissingTableName(t *testing.T) {
+	m := &putItemClientMock{}
+	repo := NewSuretyBondRepository(m, "")
+
+	err := repo.Create(context.Background(), domain.SuretyBond{ID: "1"})
+	require.ErrorIs(t, err, domain.ErrInternal)
+}
+
+func TestCreateDynamoDBInternalError(t *testing.T) {
+	m := &putItemClientMock{err: assertiveErr{}}
+	repo := NewSuretyBondRepository(m, "suretyBonds")
+
+	err := repo.Create(context.Background(), domain.SuretyBond{ID: "1", CreatedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC()})
+	require.ErrorIs(t, err, domain.ErrInternal)
+}
+
+func TestListMissingTableName(t *testing.T) {
+	m := &putItemClientMock{}
+	repo := NewSuretyBondRepository(m, "")
+
+	result, err := repo.List(context.Background())
+	require.Nil(t, result)
+	require.ErrorIs(t, err, domain.ErrInternal)
+}
+
+func TestListEmptyItems(t *testing.T) {
+	m := &putItemClientMock{items: []map[string]types.AttributeValue{}}
+	repo := NewSuretyBondRepository(m, "suretyBonds")
+
+	result, err := repo.List(context.Background())
+	require.NoError(t, err)
+	require.Empty(t, result)
+}
+
 type assertiveErr struct{}
 
 func (assertiveErr) Error() string { return "boom" }

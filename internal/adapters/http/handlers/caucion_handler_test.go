@@ -63,3 +63,47 @@ func TestListSuretyBondsSuccess(t *testing.T) {
 	require.NoError(t, json.Unmarshal([]byte(resp.Body), &payload))
 	require.Equal(t, true, payload["success"])
 }
+
+func TestListSuretyBondsError(t *testing.T) {
+	uc := &useCaseMock{err: domain.ErrInternal}
+	h := NewSuretyBondHandler(uc)
+
+	resp, err := h.ListSuretyBonds(context.Background(), events.APIGatewayProxyRequest{})
+	require.NoError(t, err)
+	require.Equal(t, 500, resp.StatusCode)
+}
+
+func TestCreateSuretyBondServiceError(t *testing.T) {
+	uc := &useCaseMock{err: domain.ErrConflict}
+	h := NewSuretyBondHandler(uc)
+
+	body := `{"numero":"C-1","tipo":"traditional","monto":1000,"moneda":"ARS","beneficiario":"Banco","tomador":"Cliente","fecha_emision":"2026-01-01T00:00:00Z","fecha_vencimiento":"2026-01-02T00:00:00Z"}`
+	resp, err := h.CreateSuretyBond(context.Background(), events.APIGatewayProxyRequest{Body: body})
+	require.NoError(t, err)
+	require.Equal(t, 409, resp.StatusCode)
+}
+
+func TestMapErrorInvalidInput(t *testing.T) {
+	resp := mapError(domain.ErrInvalidInput)
+	require.Equal(t, 400, resp.StatusCode)
+}
+
+func TestMapErrorUnauthorized(t *testing.T) {
+	resp := mapError(domain.ErrUnauthorized)
+	require.Equal(t, 401, resp.StatusCode)
+}
+
+func TestMapErrorNotFound(t *testing.T) {
+	resp := mapError(domain.ErrNotFound)
+	require.Equal(t, 404, resp.StatusCode)
+}
+
+func TestMapErrorConflict(t *testing.T) {
+	resp := mapError(domain.ErrConflict)
+	require.Equal(t, 409, resp.StatusCode)
+}
+
+func TestMapErrorDefault(t *testing.T) {
+	resp := mapError(domain.ErrInternal)
+	require.Equal(t, 500, resp.StatusCode)
+}

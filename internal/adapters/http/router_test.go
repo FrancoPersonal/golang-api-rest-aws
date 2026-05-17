@@ -70,6 +70,18 @@ func TestRouterJWTMiddleware(t *testing.T) {
 	require.Equal(t, 200, authorizedGetResp.StatusCode)
 }
 
+func TestRouterUnknownRoute(t *testing.T) {
+	h := handlers.NewSuretyBondHandler(routerUseCaseMock{})
+	r := NewRouter(h, nil, "secret")
+
+	resp, err := r.Handle(context.Background(), events.APIGatewayProxyRequest{
+		HTTPMethod: "DELETE",
+		Path:       "/suretyBonds",
+	})
+	require.NoError(t, err)
+	require.Equal(t, 404, resp.StatusCode)
+}
+
 func signJWT(t *testing.T, secret string, exp int64) string {
 	t.Helper()
 

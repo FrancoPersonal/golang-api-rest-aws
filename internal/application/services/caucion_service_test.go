@@ -92,3 +92,63 @@ func TestSuretyBondServiceListError(t *testing.T) {
 	require.Nil(t, items)
 	require.ErrorIs(t, err, domain.ErrInternal)
 }
+
+func TestSuretyBondServiceListNilReturnsEmpty(t *testing.T) {
+	repo := &repoMock{list: nil}
+	svc := NewSuretyBondService(repo, nil, nil)
+
+	items, err := svc.List(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, items)
+	require.Empty(t, items)
+}
+
+func TestValidateCreateInputExpiryBeforeIssue(t *testing.T) {
+	repo := &repoMock{}
+	svc := NewSuretyBondService(repo, nil, nil)
+
+	now := time.Now().UTC()
+	_, err := svc.Create(context.Background(), domain.CreateSuretyBondInput{
+		Number:      "C-001",
+		Type:        "traditional",
+		Amount:      1500,
+		Currency:    "ARS",
+		Beneficiary: "Banco",
+		Holder:      "Cliente",
+		IssueDate:   now,
+		ExpiryDate:  now.Add(-24 * time.Hour),
+	})
+	require.ErrorIs(t, err, domain.ErrInvalidInput)
+}
+
+func TestValidateCreateInputZeroAmount(t *testing.T) {
+	repo := &repoMock{}
+	svc := NewSuretyBondService(repo, nil, nil)
+
+	_, err := svc.Create(context.Background(), domain.CreateSuretyBondInput{
+		Number:      "C-001",
+		Type:        "traditional",
+		Amount:      0,
+		Currency:    "ARS",
+		Beneficiary: "Banco",
+		Holder:      "Cliente",
+		IssueDate:   time.Now().UTC(),
+		ExpiryDate:  time.Now().UTC().Add(24 * time.Hour),
+	})
+	require.ErrorIs(t, err, domain.ErrInvalidInput)
+}
+
+func TestValidateCreateInputZeroDates(t *testing.T) {
+	repo := &repoMock{}
+	svc := NewSuretyBondService(repo, nil, nil)
+
+	_, err := svc.Create(context.Background(), domain.CreateSuretyBondInput{
+		Number:      "C-001",
+		Type:        "traditional",
+		Amount:      1500,
+		Currency:    "ARS",
+		Beneficiary: "Banco",
+		Holder:      "Cliente",
+	})
+	require.ErrorIs(t, err, domain.ErrInvalidInput)
+}
