@@ -20,6 +20,19 @@ func NewSuretyBondHandler(useCase usecasep.SuretyBondUseCase) *SuretyBondHandler
 	return &SuretyBondHandler{useCase: useCase}
 }
 
+// CreateSuretyBond creates a new surety bond.
+//
+// @Summary      Create a new surety bond
+// @Tags         Cauciones
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      dto.CreateSuretyBondRequest  true  "Create Surety Bond Request"
+// @Success      201   {object}  dto.StandardResponse
+// @Failure      400   {object}  dto.StandardResponse
+// @Failure      401   {object}  dto.StandardResponse
+// @Failure      500   {object}  dto.StandardResponse
+// @Router       /cauciones [post]
 func (h *SuretyBondHandler) CreateSuretyBond(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var in dto.CreateSuretyBondRequest
 	if err := json.Unmarshal([]byte(req.Body), &in); err != nil {
@@ -49,6 +62,16 @@ func (h *SuretyBondHandler) CreateSuretyBond(ctx context.Context, req events.API
 	return resp, nil
 }
 
+// ListSuretyBonds lists all surety bonds.
+//
+// @Summary      List all surety bonds
+// @Tags         Cauciones
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200   {object}  dto.StandardResponse
+// @Failure      401   {object}  dto.StandardResponse
+// @Failure      500   {object}  dto.StandardResponse
+// @Router       /cauciones [get]
 func (h *SuretyBondHandler) ListSuretyBonds(ctx context.Context, _ events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	items, err := h.useCase.List(ctx)
 	if err != nil {

@@ -1,0 +1,121 @@
+basePath: /
+definitions:
+  dto.CreateSuretyBondRequest:
+    properties:
+      beneficiario:
+        example: ACME Corp
+        type: string
+      fecha_emision:
+        example: "2024-01-15T10:00:00Z"
+        type: string
+      fecha_vencimiento:
+        example: "2025-01-15T10:00:00Z"
+        type: string
+      moneda:
+        example: USD
+        type: string
+      monto:
+        example: 50000
+        type: number
+      numero:
+        example: CB-2024-001
+        type: string
+      tipo:
+        example: performance
+        type: string
+      tomador:
+        example: John Doe
+        type: string
+    type: object
+  dto.ErrorBody:
+    properties:
+      code:
+        example: invalid_input
+        type: string
+      message:
+        example: field 'numero' is required
+        type: string
+    type: object
+  dto.StandardResponse:
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/dto.ErrorBody'
+      success:
+        type: boolean
+    type: object
+host: localhost:3000
+info:
+  contact:
+    name: Franco Personal
+    url: https://github.com/FrancoPersonal
+  description: REST API for managing surety bonds (cauciones) with AWS Lambda backend.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: Cauciones API
+  version: 1.0.0
+paths:
+  /cauciones:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.StandardResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.StandardResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: List all surety bonds
+      tags:
+      - Cauciones
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Surety Bond Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateSuretyBondRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.StandardResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.StandardResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.StandardResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new surety bond
+      tags:
+      - Cauciones
+securityDefinitions:
+  BearerAuth:
+    description: 'JWT token. Format: "Bearer <token>"'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

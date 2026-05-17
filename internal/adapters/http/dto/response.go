@@ -6,11 +6,13 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
+// ErrorBody contains the error code and message returned in failed responses.
 type ErrorBody struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
+	Code    string `json:"code"    example:"invalid_input"`
+	Message string `json:"message" example:"field 'numero' is required"`
 }
 
+// StandardResponse is the envelope used for all API responses.
 type StandardResponse struct {
 	Success bool       `json:"success"`
 	Data    any        `json:"data,omitempty"`
