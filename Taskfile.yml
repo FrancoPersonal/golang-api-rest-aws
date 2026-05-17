@@ -141,6 +141,12 @@ tasks:
     cmds:
       - bash scripts/generate_swagger.sh
 
+  docs:swagger:open:
+    desc: Generate OpenAPI spec and open Swagger UI in the browser
+    cmds:
+      - task: docs:swagger
+      - bash scripts/serve_swagger.sh
+
   docs:postman:
     desc: Generate Postman collection for API testing
     cmds:
