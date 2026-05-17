@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 # scripts/check_coverage.sh
-# Runs tests with coverage, enforces an 80% threshold, and updates the badge in README.md.
+# Runs tests with coverage, enforces an 80% threshold, generates a local
+# SVG badge under badges/coverage.svg, and updates README.md to point to it.
 # Used by both the pre-commit hook and Taskfile.
 set -euo pipefail
 
 THRESHOLD=80
 COVERAGE_FILE="coverage.out"
 README="README.md"
+BADGE_DIR="badges"
+BADGE_FILE="${BADGE_DIR}/coverage.svg"
 
 echo "▶ Running tests with coverage..."
 # Exclude lambda bootstrap mains and the packaging script from coverage:
@@ -34,11 +37,42 @@ elif (( TOTAL_INT >= 60 )); then COLOR="yellow"
 else                              COLOR="red"
 fi
 
-# Update badge URL in README.md
-BADGE_URL="https://img.shields.io/badge/coverage-${TOTAL_INT}%25-${COLOR}"
-sed -i.bak "s|https://img\.shields\.io/badge/coverage-[^)]*|${BADGE_URL}|g" "${README}" && rm -f "${README}.bak"
+# Map color name to hex value used in the SVG
+case "${COLOR}" in
+  brightgreen) HEX="#4c1"  ;;
+  yellow)      HEX="#dfb317" ;;
+  *)           HEX="#e05d44" ;;
+esac
 
-# Stage the updated README so it is included in the commit
-git add "${README}"
+# Generate the local SVG badge (flat style, same layout as shields.io)
+mkdir -p "${BADGE_DIR}"
+LABEL="coverage"
+VALUE="${TOTAL_INT}%"
+LABEL_W=70
+VALUE_W=46
+TOTAL_W=$(( LABEL_W + VALUE_W ))
+cat > "${BADGE_FILE}" <<SVG
+<svg xmlns="http://www.w3.org/2000/svg" width="${TOTAL_W}" height="20">
+  <linearGradient id="s" x2="0" y2="100%">
+    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <rect rx="3" width="${TOTAL_W}" height="20" fill="#555"/>
+  <rect rx="3" x="${LABEL_W}" width="${VALUE_W}" height="20" fill="${HEX}"/>
+  <rect rx="3" width="${TOTAL_W}" height="20" fill="url(#s)"/>
+  <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11">
+    <text x="35" y="15" fill="#010101" fill-opacity=".3">${LABEL}</text>
+    <text x="35" y="14">${LABEL}</text>
+    <text x="$(( LABEL_W + VALUE_W / 2 ))" y="15" fill="#010101" fill-opacity=".3">${VALUE}</text>
+    <text x="$(( LABEL_W + VALUE_W / 2 ))" y="14">${VALUE}</text>
+  </g>
+</svg>
+SVG
 
-echo "✓ Coverage badge updated to ${TOTAL_INT}% (${COLOR})"
+# Update README.md to reference the local badge file
+sed -i.bak "s|!\[Coverage\]([^)]*)|![Coverage](${BADGE_FILE})|g" "${README}" && rm -f "${README}.bak"
+
+# Stage both artefacts so they are included in the commit
+git add "${BADGE_FILE}" "${README}"
+
+echo "✓ Local badge written to ${BADGE_FILE} (${TOTAL_INT}%, ${COLOR})"

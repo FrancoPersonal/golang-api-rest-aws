@@ -1,9 +1,8 @@
 # Cauciones API
 
-[![CI](https://github.com/FrancoPersonal/golang-api-rest-aws/actions/workflows/ci.yml/badge.svg)](https://github.com/FrancoPersonal/golang-api-rest-aws/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-94%25-brightgreen)](coverage.out)
-[![Lint](https://img.shields.io/badge/lint-failing-red)](https://golangci-lint.run)
 [![Go](https://img.shields.io/badge/go-1.26-00ADD8?logo=go)](https://golang.org)
+[![Coverage](badges/coverage.svg)](coverage.out)
+[![Lint](https://img.shields.io/badge/lint-failing-red)](https://golangci-lint.run)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 REST API for **Cauciones** built with Go 1.26+, designed for AWS Lambda behind API Gateway, following **hexagonal architecture**.
@@ -29,7 +28,7 @@ REST API for **Cauciones** built with Go 1.26+, designed for AWS Lambda behind A
 └────────────────────┬─────────────────────────────────┘
                      │
 ┌────────────────────▼─────────────────────────────────┐
-│              Infrastructure / Adapters               │
+                    [![Coverage](badges/coverage.svg)](coverage.out)
 │                repositories (DynamoDB)               │
 └──────────────────────────────────────────────────────┘
 ```
