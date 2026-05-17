@@ -1,0 +1,51 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo "Installing dependencies..."
+      - go version
+      - go env -w GOPRIVATE=github.com/FrancoPersonal/*
+      - go env -w GONOSUMDB=github.com/FrancoPersonal/*
+      - go install github.com/go-task/task/v3/cmd/task@latest
+      - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin latest
+      - golangci-lint --version
+
+  build:
+    commands:
+      - echo "Running Go module tidy..."
+      - task tidy
+      - echo "Running linter..."
+      - task lint
+      - echo "Running tests with coverage..."
+      - task coverage
+      - echo "Building Lambda binaries..."
+      - task build
+      - echo "Build completed successfully"
+
+  post_build:
+    commands:
+      - echo "Verifying build artifacts..."
+      - test -f build/post_cauciones.zip && echo "✓ post_cauciones.zip exists" || (echo "✗ post_cauciones.zip not found" && exit 1)
+      - test -f build/get_cauciones.zip && echo "✓ get_cauciones.zip exists" || (echo "✗ get_cauciones.zip not found" && exit 1)
+      - echo "Lambda build artifacts ready for deployment"
+
+artifacts:
+  files:
+    - build/post_cauciones.zip
+    - build/get_cauciones.zip
+    - badges/coverage.svg
+    - badges/lint.svg
+  name: CaucionesLambdaArtifacts
+  discard-paths: no
+
+cache:
+  paths:
+    - '/root/go/pkg/mod/**/*'
+    - '$(go env GOPATH)/bin/**/*'
+
+reports:
+  coverage:
+    files:
+      - coverage.out
+    file-format: COBERTURAJUNITXML
