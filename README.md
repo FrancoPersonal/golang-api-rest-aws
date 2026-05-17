@@ -189,6 +189,49 @@ task local:api
 
 ---
 
+## Available Tasks
+
+Run `task` (no arguments) to list all tasks. The most useful ones:
+
+### Development
+
+| Task | Description |
+|---|---|
+| `task lint` | Run golangci-lint across all packages |
+| `task test` | Run unit tests with race detector |
+| `task coverage` | Run tests, enforce ≥80% coverage and update badge |
+| `task build` | Build Lambda binaries and zip artifacts under `build/` |
+| `task tidy` | Tidy and verify Go modules |
+| `task local:api` | Start the API locally via Serverless offline (requires Docker) |
+
+### Documentation
+
+| Task | Description |
+|---|---|
+| `task docs` | Generate Swagger spec + Postman collection |
+| `task docs:swagger` | Generate `docs/openapi.json` and `docs/openapi.yaml` from code annotations |
+| `task docs:swagger:open` | Regenerate spec and open Swagger UI in the browser |
+| `task docs:postman` | Generate `docs/Cauciones-API.postman_collection.json` |
+
+### Badges
+
+| Task | Description |
+|---|---|
+| `task badge` | Update both lint and coverage badges in README |
+| `task badge:lint` | Run golangci-lint and update lint badge |
+| `task badge:coverage` | Run tests and update coverage badge |
+
+### Deploy
+
+| Task | Description |
+|---|---|
+| `task deploy:dev` | Build + deploy policies, infrastructure and API to dev |
+| `task deploy:prod` | Deploy policies, infrastructure and API to prod |
+| `task deploy:policies:dev` | Deploy only the IAM policies stack to dev |
+| `task deploy:infrastructure:dev` | Deploy only the infrastructure stack to dev |
+
+---
+
 ## Deploy
 
 ```bash
