@@ -41,5 +41,6 @@ pending ──► active ──► expired
 | CI/CD (pre-commit + CodeBuild) | [docs/ci.md](docs/ci.md) |
 | OpenAPI specification | [docs/openapi.json](docs/openapi.json) |
 | Postman collection | [docs/Cauciones-API.postman_collection.json](docs/Cauciones-API.postman_collection.json) |
+| New endpoint guide | [docs/new-endpoint.md](docs/new-endpoint.md) |
 
 ---
