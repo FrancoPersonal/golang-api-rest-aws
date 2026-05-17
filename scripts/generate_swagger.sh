@@ -38,5 +38,6 @@ echo "✓ OpenAPI specification generated:"
 echo "  ${DOCS_DIR}/openapi.json"
 echo "  ${DOCS_DIR}/openapi.yaml"
 
-# Keep the legacy heredoc below this comment removed — spec is now code-driven.
+git add "${DOCS_DIR}/openapi.json" "${DOCS_DIR}/openapi.yaml"
+
 exit 0

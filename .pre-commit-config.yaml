@@ -16,6 +16,14 @@ repos:
         pass_filenames: false
         stages: [pre-commit]
 
+      - id: swagger-gen
+        name: swagger generation (openapi.json + openapi.yaml)
+        language: system
+        entry: bash scripts/generate_swagger.sh
+        types: [go]
+        pass_filenames: false
+        stages: [pre-commit]
+
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v3.4.0
     hooks:
