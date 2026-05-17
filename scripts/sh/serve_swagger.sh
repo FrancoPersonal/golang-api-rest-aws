@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/serve_swagger.sh
+# scripts/sh/serve_swagger.sh
 # Generates a self-contained HTML file with Swagger UI pointing to the local
 # OpenAPI spec and opens it in the default browser.
 # The spec JSON is embedded directly into the HTML to avoid CORS issues with

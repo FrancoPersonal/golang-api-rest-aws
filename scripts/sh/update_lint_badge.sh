@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/update_lint_badge.sh
+# scripts/sh/update_lint_badge.sh
 # Runs golangci-lint, generates a local SVG badge under badges/lint.svg,
 # and updates README.md to point to the local badge.
 set -euo pipefail

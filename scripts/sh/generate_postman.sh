@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/generate_postman.sh
+# scripts/sh/generate_postman.sh
 # Generates a Postman Collection v2.1 by parsing docs/openapi.json.
 # Requires docs/openapi.json to exist — run 'task docs:swagger' first.
 # Output: docs/Cauciones-API.postman_collection.json
@@ -13,7 +13,7 @@ if [[ ! -f "${SPEC}" ]]; then
 fi
 
 echo "▶ Generating Postman collection from ${SPEC}..."
-go run ./scripts/generate_postman.go
+go run ./scripts/go/generate_postman.go
 
 echo "  Import docs/Cauciones-API.postman_collection.json into Postman:"
 echo "  1. Open Postman → Import"

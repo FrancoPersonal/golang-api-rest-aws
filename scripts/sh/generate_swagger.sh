@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/generate_swagger.sh
+# scripts/sh/generate_swagger.sh
 # Parses swaggo annotations from Go source files and generates OpenAPI 2.0 spec.
 # Output: docs/swagger.json and docs/swagger.yaml
 #

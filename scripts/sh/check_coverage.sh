@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/check_coverage.sh
+# scripts/sh/check_coverage.sh
 # Runs tests with coverage, enforces an 80% threshold, generates a local
 # SVG badge under badges/coverage.svg, and updates README.md to point to it.
 # Used by both the pre-commit hook and Taskfile.

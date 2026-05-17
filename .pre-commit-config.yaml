@@ -4,7 +4,7 @@ repos:
       - id: golangci-lint
         name: golangci-lint + lint badge update
         language: system
-        entry: bash scripts/update_lint_badge.sh
+        entry: bash scripts/sh/update_lint_badge.sh
         types: [go]
         pass_filenames: false
         stages: [pre-commit]
@@ -12,14 +12,14 @@ repos:
       - id: coverage-check
         name: coverage check (≥80%) + badge update
         language: system
-        entry: bash scripts/check_coverage.sh
+        entry: bash scripts/sh/check_coverage.sh
         pass_filenames: false
         stages: [pre-commit]
 
       - id: swagger-gen
         name: swagger generation (openapi.json + openapi.yaml)
         language: system
-        entry: bash scripts/generate_swagger.sh
+        entry: bash scripts/sh/generate_swagger.sh
         types: [go]
         pass_filenames: false
         stages: [pre-commit]

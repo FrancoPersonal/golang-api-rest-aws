@@ -28,7 +28,7 @@ tasks:
   coverage:
     desc: Run tests, enforce ≥80% coverage and update README badge
     cmds:
-      - bash scripts/check_coverage.sh
+      - bash scripts/sh/check_coverage.sh
 
   build:
     desc: Build separated Lambda artifacts in ./build (one binary and zip per function)
@@ -38,8 +38,8 @@ tasks:
       - mkdir -p {{.BUILD_DIR}}/post_cauciones {{.BUILD_DIR}}/get_cauciones
       - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o {{.POST_BINARY}} ./internal/infrastructure/lambda/post_cauciones
       - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o {{.GET_BINARY}} ./internal/infrastructure/lambda/get_cauciones
-      - go run ./scripts/package_lambda.go -src {{.POST_BINARY}} -dst {{.POST_ARTIFACT}}
-      - go run ./scripts/package_lambda.go -src {{.GET_BINARY}} -dst {{.GET_ARTIFACT}}
+      - go run ./scripts/go/package_lambda.go -src {{.POST_BINARY}} -dst {{.POST_ARTIFACT}}
+      - go run ./scripts/go/package_lambda.go -src {{.GET_BINARY}} -dst {{.GET_ARTIFACT}}
 
   local:api:
     desc: Start the API locally via Serverless Framework
@@ -108,12 +108,12 @@ tasks:
   badge:lint:
     desc: Run golangci-lint and update the lint badge in README.md
     cmds:
-      - bash scripts/update_lint_badge.sh
+      - bash scripts/sh/update_lint_badge.sh
 
   badge:coverage:
     desc: Run tests and update the coverage badge in README.md
     cmds:
-      - bash scripts/check_coverage.sh
+      - bash scripts/sh/check_coverage.sh
 
   badge:
     desc: Update both lint and coverage badges in README.md
@@ -139,15 +139,15 @@ tasks:
   docs:swagger:
     desc: Generate OpenAPI 3.0 (Swagger) specification
     cmds:
-      - bash scripts/generate_swagger.sh
+      - bash scripts/sh/generate_swagger.sh
 
   docs:swagger:open:
     desc: Generate OpenAPI spec and open Swagger UI in the browser
     cmds:
       - task: docs:swagger
-      - bash scripts/serve_swagger.sh
+      - bash scripts/sh/serve_swagger.sh
 
   docs:postman:
     desc: Generate Postman collection for API testing
     cmds:
-      - bash scripts/generate_postman.sh
+      - bash scripts/sh/generate_postman.sh
