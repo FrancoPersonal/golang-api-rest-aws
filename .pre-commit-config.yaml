@@ -2,11 +2,12 @@ repos:
   - repo: local
     hooks:
       - id: golangci-lint
-        name: golangci-lint
+        name: golangci-lint + lint badge update
         language: system
-        entry: golangci-lint run
+        entry: bash scripts/update_lint_badge.sh
         types: [go]
         pass_filenames: false
+        stages: [pre-commit]
 
       - id: coverage-check
         name: coverage check (≥80%) + badge update

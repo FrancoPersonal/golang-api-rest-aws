@@ -2,7 +2,7 @@
 
 [![Go](https://img.shields.io/badge/go-1.26-00ADD8?logo=go)](https://golang.org)
 [![Coverage](badges/coverage.svg)](coverage.out)
-[![Lint](https://img.shields.io/badge/lint-failing-red)](https://golangci-lint.run)
+[![Lint](badges/lint.svg)](https://golangci-lint.run)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 REST API for **Cauciones** built with Go 1.26+, designed for AWS Lambda behind API Gateway, following **hexagonal architecture**.
