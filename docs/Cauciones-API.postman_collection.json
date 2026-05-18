@@ -1,0 +1,86 @@
+{
+  "info": {
+    "name": "Cauciones API",
+    "description": "REST API for managing surety bonds (cauciones) with AWS Lambda backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Cauciones",
+      "item": [
+        {
+          "name": "List all surety bonds",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cauciones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cauciones"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create a new surety bond",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"beneficiario\": \"ACME Corp\",\n  \"fecha_emision\": \"2024-01-15T10:00:00Z\",\n  \"fecha_vencimiento\": \"2025-01-15T10:00:00Z\",\n  \"moneda\": \"USD\",\n  \"monto\": 50000,\n  \"numero\": \"CB-2024-001\",\n  \"tipo\": \"performance\",\n  \"tomador\": \"John Doe\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/cauciones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "cauciones"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "your-jwt-token-here",
+      "type": "string"
+    },
+    {
+      "key": "id",
+      "value": "550e8400-e29b-41d4-a716-446655440000",
+      "type": "string"
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "REST API for managing surety bonds (cauciones) with AWS Lambda backend.",
+        "title": "Cauciones API",
+        "contact": {
+            "name": "Franco Personal",
+            "url": "https://github.com/FrancoPersonal"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:3000",
+    "basePath": "/",
+    "paths": {
+        "/cauciones": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cauciones"
+                ],
+                "summary": "List all surety bonds",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.StandardResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.StandardResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Cauciones"
+                ],
+                "summary": "Create a new surety bond",
+                "parameters": [
+                    {
+                        "description": "Create Surety Bond Request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateSuretyBondRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.StandardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.StandardResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.StandardResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.CreateSuretyBondRequest": {
+            "type": "object",
+            "properties": {
+                "beneficiario": {
+                    "type": "string",
+                    "example": "ACME Corp"
+                },
+                "fecha_emision": {
+                    "type": "string",
+                    "example": "2024-01-15T10:00:00Z"
+                },
+                "fecha_vencimiento": {
+                    "type": "string",
+                    "example": "2025-01-15T10:00:00Z"
+                },
+                "moneda": {
+                    "type": "string",
+                    "example": "USD"
+                },
+                "monto": {
+                    "type": "number",
+                    "example": 50000
+                },
+                "numero": {
+                    "type": "string",
+                    "example": "CB-2024-001"
+                },
+                "tipo": {
+                    "type": "string",
+                    "example": "performance"
+                },
+                "tomador": {
+                    "type": "string",
+                    "example": "John Doe"
+                }
+            }
+        },
+        "dto.ErrorBody": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "invalid_input"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "field 'numero' is required"
+                }
+            }
+        },
+        "dto.StandardResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {
+                    "$ref": "#/definitions/dto.ErrorBody"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "JWT token. Format: \"Bearer \u003ctoken\u003e\"",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

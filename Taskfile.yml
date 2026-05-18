@@ -1,7 +1,11 @@
 version: "3"
 
 vars:
-  BINARY: bootstrap
+  BUILD_DIR: build
+  POST_BINARY: build/post_cauciones/bootstrap
+  GET_BINARY: build/get_cauciones/bootstrap
+  POST_ARTIFACT: build/post_cauciones.zip
+  GET_ARTIFACT: build/get_cauciones.zip
   MODULE: github.com/FrancoPersonal/golang-api-rest-aws
   COVERAGE_THRESHOLD: "80"
 
@@ -24,42 +28,75 @@ tasks:
   coverage:
     desc: Run tests, enforce ≥80% coverage and update README badge
     cmds:
-      - bash scripts/check_coverage.sh
+      - bash scripts/sh/check_coverage.sh
 
   build:
-    desc: Cross-compile Lambda binary (linux/amd64 → ./bootstrap)
+    desc: Build separated Lambda artifacts in ./build (one binary and zip per function)
     cmds:
-      - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o {{.BINARY}} ./cmd/lambda
+      - mkdir -p {{.BUILD_DIR}}
+      - rm -f {{.BUILD_DIR}}/bootstrap {{.BUILD_DIR}}/lambda.zip
+      - mkdir -p {{.BUILD_DIR}}/post_cauciones {{.BUILD_DIR}}/get_cauciones
+      - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o {{.POST_BINARY}} ./internal/infrastructure/lambda/post_cauciones
+      - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o {{.GET_BINARY}} ./internal/infrastructure/lambda/get_cauciones
+      - go run ./scripts/go/package_lambda.go -src {{.POST_BINARY}} -dst {{.POST_ARTIFACT}}
+      - go run ./scripts/go/package_lambda.go -src {{.GET_BINARY}} -dst {{.GET_ARTIFACT}}
 
   local:api:
-    desc: Start the API locally via Serverless Framework (requires Docker)
+    desc: Start the API locally via Serverless Framework
     deps: [build]
     cmds:
       - serverless offline start --stage dev
 
   deploy:guided:
-    desc: Interactive first-time Serverless Framework deploy
+    desc: Deploy to dev with explicit stage (using split serverless policies/infrastructure)
     deps: [build]
     cmds:
-      - serverless print --stage dev
+      - task: deploy:policies:dev
+      - task: deploy:infrastructure:dev
       - serverless deploy --stage dev
 
   deploy:
-    desc: Deploy using Serverless Framework default stage
+    desc: Deploy API (POST/GET /cauciones) with split serverless policies/infrastructure
     deps: [build]
     cmds:
+      - task: deploy:policies
+      - task: deploy:infrastructure
       - serverless deploy
+
+  deploy:policies:
+    desc: Deploy IAM policies stack independently
+    cmds:
+      - serverless deploy --config serverless.policies.yml
+
+  deploy:infrastructure:
+    desc: Deploy infrastructure stack independently
+    cmds:
+      - serverless deploy --config serverless.infrastructure.yml
+
+  deploy:policies:dev:
+    desc: Deploy IAM policies stack (dev)
+    cmds:
+      - serverless deploy --config serverless.policies.yml --stage dev
+
+  deploy:infrastructure:dev:
+    desc: Deploy infrastructure stack (dev)
+    cmds:
+      - serverless deploy --config serverless.infrastructure.yml --stage dev
 
   deploy:dev:
     desc: Deploy to dev stack
     deps: [build]
     cmds:
+      - task: deploy:policies:dev
+      - task: deploy:infrastructure:dev
       - serverless deploy --stage dev
 
   deploy:prod:
     desc: Deploy to prod stack
     deps: [build]
     cmds:
+      - serverless deploy --config serverless.policies.yml --stage prod
+      - serverless deploy --config serverless.infrastructure.yml --stage prod
       - serverless deploy --stage prod
 
   pre-commit:
@@ -71,12 +108,12 @@ tasks:
   badge:lint:
     desc: Run golangci-lint and update the lint badge in README.md
     cmds:
-      - bash scripts/update_lint_badge.sh
+      - bash scripts/sh/update_lint_badge.sh
 
   badge:coverage:
     desc: Run tests and update the coverage badge in README.md
     cmds:
-      - bash scripts/check_coverage.sh
+      - bash scripts/sh/check_coverage.sh
 
   badge:
     desc: Update both lint and coverage badges in README.md
@@ -92,3 +129,25 @@ tasks:
       - go mod download
       - go mod tidy
       - go mod verify
+
+  docs:
+    desc: Generate API documentation (Swagger + Postman collection)
+    cmds:
+      - task: docs:swagger
+      - task: docs:postman
+
+  docs:swagger:
+    desc: Generate OpenAPI 3.0 (Swagger) specification
+    cmds:
+      - bash scripts/sh/generate_swagger.sh
+
+  docs:swagger:open:
+    desc: Generate OpenAPI spec and open Swagger UI in the browser
+    cmds:
+      - task: docs:swagger
+      - bash scripts/sh/serve_swagger.sh
+
+  docs:postman:
+    desc: Generate Postman collection for API testing
+    cmds:
+      - bash scripts/sh/generate_postman.sh

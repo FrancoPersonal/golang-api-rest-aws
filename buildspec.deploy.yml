@@ -1,0 +1,43 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo "Installing deployment tools..."
+      - node --version
+      - npm --version
+      - npm install -g serverless@latest
+      - serverless --version
+      - echo "Configuring AWS credentials..."
+      - aws sts get-caller-identity
+      - echo "Stage: $STAGE"
+
+  build:
+    commands:
+      - echo "Downloading Lambda artifacts from CodeBuild..."
+      - |
+        if [ ! -f build/post_cauciones.zip ] || [ ! -f build/get_cauciones.zip ]; then
+          echo "Lambda artifacts not found. Downloading from S3 build output..."
+          aws s3 cp s3://${ARTIFACT_BUCKET}/build/post_cauciones.zip build/ || echo "Note: Artifacts expected from build phase"
+          aws s3 cp s3://${ARTIFACT_BUCKET}/build/get_cauciones.zip build/ || echo "Note: Artifacts expected from build phase"
+        fi
+      - echo "Deploying IAM policies stack..."
+      - serverless deploy --config serverless.policies.yml --stage ${STAGE}
+      - echo "Deploying infrastructure stack..."
+      - serverless deploy --config serverless.infrastructure.yml --stage ${STAGE}
+      - echo "Deploying API stack..."
+      - serverless deploy --stage ${STAGE}
+      - echo "Deployment completed successfully"
+
+  post_build:
+    commands:
+      - echo "Retrieving deployment outputs..."
+      - aws cloudformation describe-stacks --stack-name cauciones-api-${STAGE} --query 'Stacks[0].Outputs' --output table
+      - echo "API deployment complete"
+
+env:
+  variables:
+    STAGE: 'dev'
+    ARTIFACT_BUCKET: 'codebuild-cauciones-artifacts'
+  parameter-store:
+    JWT_SECRET: '/cauciones/jwt-secret'
