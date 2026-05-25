@@ -1,0 +1,40 @@
+{
+  "000000000000/us-east-1::cauciones-api-local-cauciones" : {
+    "tableName" : "cauciones-api-local-cauciones",
+    "keySchema" : [ {
+      "attributeName" : "id",
+      "keyType" : "HASH"
+    } ],
+    "attributeDefinitions" : [ {
+      "attributeName" : "id",
+      "attributeType" : "S"
+    } ],
+    "tableStatus" : "ACTIVE",
+    "creationDateTime" : "2026-05-18T23:01:40.784104613Z",
+    "itemCount" : 0,
+    "tableSizeBytes" : 0,
+    "provisionedThroughput" : {
+      "readCapacityUnits" : 0,
+      "writeCapacityUnits" : 0,
+      "lastIncreaseDateTime" : null,
+      "lastDecreaseDateTime" : null,
+      "numberOfDecreasesToday" : 0
+    },
+    "tableArn" : "arn:aws:dynamodb:us-east-1:000000000000:table/cauciones-api-local-cauciones",
+    "tags" : { },
+    "globalSecondaryIndexes" : [ ],
+    "localSecondaryIndexes" : [ ],
+    "billingMode" : "PAY_PER_REQUEST",
+    "ttlAttributeName" : null,
+    "ttlEnabled" : false,
+    "pointInTimeRecoveryEnabled" : false,
+    "pointInTimeRecoveryRecoveryPeriodInDays" : 35,
+    "deletionProtectionEnabled" : false,
+    "streamEnabled" : false,
+    "streamArn" : null,
+    "streamViewType" : null,
+    "kinesisStreamingDestinations" : [ ],
+    "partitionKeyName" : "id",
+    "sortKeyName" : null
+  }
+}

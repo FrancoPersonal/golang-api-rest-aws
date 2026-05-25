@@ -1,0 +1,421 @@
+{
+  "info": {
+    "_postman_id": "c7e1f2a3-b4d5-6789-0abc-def012345678",
+    "name": "Cauciones API — Integration Tests (Floci)",
+    "description": "Integration test suite for the Cauciones API running on the Floci local AWS emulator. Covers authentication, input validation, and business flows for POST and GET /cauciones.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Generates a fresh valid HS256 JWT before every request.",
+          "const secret = pm.environment.get('jwt_secret') || 'dev-secret';",
+          "const now = Math.floor(Date.now() / 1000);",
+          "",
+          "function b64url(s) {",
+          "    return btoa(s).replace(/[+]/g, '-').replace(/[/]/g, '_').replace(/[=]/g, '');",
+          "}",
+          "",
+          "const hdr     = b64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));",
+          "const pay     = b64url(JSON.stringify({ exp: now + 3600, iat: now }));",
+          "const signing = hdr + '.' + pay;",
+          "const hash    = CryptoJS.HmacSHA256(signing, secret);",
+          "const sig     = CryptoJS.enc.Base64.stringify(hash)",
+          "                    .replace(/[+]/g, '-').replace(/[/]/g, '_').replace(/[=]/g, '');",
+          "",
+          "pm.environment.set('jwt_token', signing + '.' + sig);"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Autenticacion",
+      "item": [
+        {
+          "name": "POST sin Authorization header → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401));",
+                  "const b = pm.response.json();",
+                  "pm.test('success es false', () => pm.expect(b.success).to.be.false);",
+                  "pm.test('error.code = unauthorized', () => pm.expect(b.error.code).to.eql('unauthorized'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"numero\":\"CB-AUTH-001\",\"tipo\":\"performance\",\"monto\":1000,\"moneda\":\"USD\",\"beneficiario\":\"Test\",\"tomador\":\"Test\",\"fecha_emision\":\"2024-01-01T00:00:00Z\",\"fecha_vencimiento\":\"2025-01-01T00:00:00Z\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/cauciones",
+              "host": ["{{base_url}}"],
+              "path": ["cauciones"]
+            }
+          }
+        },
+        {
+          "name": "POST con token invalido → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401));",
+                  "const b = pm.response.json();",
+                  "pm.test('success es false', () => pm.expect(b.success).to.be.false);",
+                  "pm.test('error.code = unauthorized', () => pm.expect(b.error.code).to.eql('unauthorized'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer header.payload.badsignature" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"numero\":\"CB-AUTH-002\",\"tipo\":\"performance\",\"monto\":1000,\"moneda\":\"USD\",\"beneficiario\":\"Test\",\"tomador\":\"Test\",\"fecha_emision\":\"2024-01-01T00:00:00Z\",\"fecha_vencimiento\":\"2025-01-01T00:00:00Z\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/cauciones",
+              "host": ["{{base_url}}"],
+              "path": ["cauciones"]
+            }
+          }
+        },
+        {
+          "name": "POST con token expirado → 401",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Overrides jwt_token with an expired but correctly signed token.",
+                  "const secret = pm.environment.get('jwt_secret') || 'dev-secret';",
+                  "",
+                  "function b64url(s) {",
+                  "    return btoa(s).replace(/[+]/g, '-').replace(/[/]/g, '_').replace(/[=]/g, '');",
+                  "}",
+                  "",
+                  "const hdr     = b64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));",
+                  "const pay     = b64url(JSON.stringify({ exp: 1000, iat: 500 }));",
+                  "const signing = hdr + '.' + pay;",
+                  "const hash    = CryptoJS.HmacSHA256(signing, secret);",
+                  "const sig     = CryptoJS.enc.Base64.stringify(hash)",
+                  "                    .replace(/[+]/g, '-').replace(/[/]/g, '_').replace(/[=]/g, '');",
+                  "",
+                  "pm.environment.set('jwt_token', signing + '.' + sig);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401));",
+                  "const b = pm.response.json();",
+                  "pm.test('success es false', () => pm.expect(b.success).to.be.false);",
+                  "pm.test('error.code = unauthorized', () => pm.expect(b.error.code).to.eql('unauthorized'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"numero\":\"CB-AUTH-003\",\"tipo\":\"performance\",\"monto\":1000,\"moneda\":\"USD\",\"beneficiario\":\"Test\",\"tomador\":\"Test\",\"fecha_emision\":\"2024-01-01T00:00:00Z\",\"fecha_vencimiento\":\"2025-01-01T00:00:00Z\"}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/cauciones",
+              "host": ["{{base_url}}"],
+              "path": ["cauciones"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST /cauciones",
+      "item": [
+        {
+          "name": "crear caución válida → 201",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('test_numero', 'CB-TEST-' + Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test('success es true', () => pm.expect(b.success).to.be.true);",
+                  "pm.test('data.id es string no vacío', () => pm.expect(b.data.id).to.be.a('string').and.not.empty);",
+                  "pm.test('data.estado = pending', () => pm.expect(b.data.estado).to.eql('pending'));",
+                  "pm.test('data.numero correcto', () => pm.expect(b.data.numero).to.eql(pm.environment.get('test_numero')));",
+                  "pm.test('data.moneda en mayúsculas', () => pm.expect(b.data.moneda).to.eql('USD'));",
+                  "pm.test('data.monto correcto', () => pm.expect(b.data.monto).to.eql(50000));",
+                  "pm.test('data.created_at existe', () => pm.expect(b.data.created_at).to.be.a('string').and.not.empty);",
+                  "pm.environment.set('created_id', b.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"{{test_numero}}\",\n  \"tipo\": \"performance\",\n  \"monto\": 50000,\n  \"moneda\": \"usd\",\n  \"beneficiario\": \"ACME Corp\",\n  \"tomador\": \"John Doe\",\n  \"fecha_emision\": \"2024-01-15T10:00:00Z\",\n  \"fecha_vencimiento\": \"2025-01-15T10:00:00Z\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/cauciones",
+              "host": ["{{base_url}}"],
+              "path": ["cauciones"]
+            }
+          }
+        },
+        {
+          "name": "campo numero vacío → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));",
+                  "const b = pm.response.json();",
+                  "pm.test('success es false', () => pm.expect(b.success).to.be.false);",
+                  "pm.test('error.code = invalid_input', () => pm.expect(b.error.code).to.eql('invalid_input'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"\",\n  \"tipo\": \"performance\",\n  \"monto\": 50000,\n  \"moneda\": \"USD\",\n  \"beneficiario\": \"ACME Corp\",\n  \"tomador\": \"John Doe\",\n  \"fecha_emision\": \"2024-01-15T10:00:00Z\",\n  \"fecha_vencimiento\": \"2025-01-15T10:00:00Z\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/cauciones",
+              "host": ["{{base_url}}"],
+              "path": ["cauciones"]
+            }
+          }
+        },
+        {
+          "name": "monto cero → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));",
+                  "const b = pm.response.json();",
+                  "pm.test('success es false', () => pm.expect(b.success).to.be.false);",
+                  "pm.test('error.code = invalid_input', () => pm.expect(b.error.code).to.eql('invalid_input'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"CB-VAL-002\",\n  \"tipo\": \"performance\",\n  \"monto\": 0,\n  \"moneda\": \"USD\",\n  \"beneficiario\": \"ACME Corp\",\n  \"tomador\": \"John Doe\",\n  \"fecha_emision\": \"2024-01-15T10:00:00Z\",\n  \"fecha_vencimiento\": \"2025-01-15T10:00:00Z\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/cauciones",
+              "host": ["{{base_url}}"],
+              "path": ["cauciones"]
+            }
+          }
+        },
+        {
+          "name": "fecha_vencimiento antes que fecha_emision → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));",
+                  "const b = pm.response.json();",
+                  "pm.test('success es false', () => pm.expect(b.success).to.be.false);",
+                  "pm.test('error.code = invalid_input', () => pm.expect(b.error.code).to.eql('invalid_input'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"CB-VAL-003\",\n  \"tipo\": \"performance\",\n  \"monto\": 10000,\n  \"moneda\": \"USD\",\n  \"beneficiario\": \"ACME Corp\",\n  \"tomador\": \"John Doe\",\n  \"fecha_emision\": \"2025-06-01T00:00:00Z\",\n  \"fecha_vencimiento\": \"2024-01-01T00:00:00Z\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/cauciones",
+              "host": ["{{base_url}}"],
+              "path": ["cauciones"]
+            }
+          }
+        },
+        {
+          "name": "JSON mal formado → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));",
+                  "const b = pm.response.json();",
+                  "pm.test('success es false', () => pm.expect(b.success).to.be.false);",
+                  "pm.test('error.code = invalid_json', () => pm.expect(b.error.code).to.eql('invalid_json'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "this is not json",
+              "options": { "raw": { "language": "text" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/cauciones",
+              "host": ["{{base_url}}"],
+              "path": ["cauciones"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET /cauciones",
+      "item": [
+        {
+          "name": "listar cauciones → 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('success es true', () => pm.expect(b.success).to.be.true);",
+                  "pm.test('data es array', () => pm.expect(b.data).to.be.an('array'));",
+                  "pm.test('Content-Type es application/json', () => {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cauciones",
+              "host": ["{{base_url}}"],
+              "path": ["cauciones"]
+            }
+          }
+        },
+        {
+          "name": "lista contiene la caución creada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "const createdId = pm.environment.get('created_id');",
+                  "pm.test('created_id está disponible en el entorno', () => pm.expect(createdId).to.be.a('string').and.not.empty);",
+                  "const found = b.data.some(item => item.id === createdId);",
+                  "pm.test('la caución creada aparece en la lista', () => pm.expect(found).to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cauciones",
+              "host": ["{{base_url}}"],
+              "path": ["cauciones"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
