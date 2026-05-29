@@ -1,0 +1,16 @@
+{
+  "000000000000/lambda-local-role" : {
+    "roleId" : "AROALI757ZKK5ADM8CGZ",
+    "roleName" : "lambda-local-role",
+    "path" : "/",
+    "arn" : "arn:aws:iam::000000000000:role/lambda-local-role",
+    "assumeRolePolicyDocument" : "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}",
+    "description" : null,
+    "maxSessionDuration" : 3600,
+    "createDate" : "2026-05-18T23:01:41.176835530Z",
+    "tags" : { },
+    "attachedPolicyArns" : [ ],
+    "inlinePolicies" : { },
+    "permissionsBoundaryArn" : null
+  }
+}

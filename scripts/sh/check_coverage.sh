@@ -16,6 +16,7 @@ echo "▶ Running tests with coverage..."
 # those are wiring/infrastructure code that cannot be unit-tested without
 # a live Lambda runtime or real filesystem tooling.
 PKGS=$(go list ./... | grep -v \
+  -e 'cmd/lambdas' \
   -e 'internal/infrastructure/lambda' \
   -e '^github.com/FrancoPersonal/golang-api-rest-aws/scripts$')
 go test -coverprofile="${COVERAGE_FILE}" ${PKGS}
